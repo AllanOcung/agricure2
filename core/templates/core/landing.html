@@ -1,0 +1,171 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agricure - AI-Powered Crop Diagnosis</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/herosection.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/howitworks.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/benefits.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/technology.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}" />
+  </head>
+  <body>
+    <!-- Navigation -->
+    {% include 'core/navbar.html' %}
+
+    <!-- Hero Section -->
+    {% include 'core/herosection.html' %}
+
+    <!-- Challenges Section -->
+    {% include 'core/challenges.html' %}
+
+    <!-- Features Section -->
+    {% include 'core/features.html' %}
+
+    <!-- How it Works Section -->
+    {% include 'core/howitworks.html' %}
+
+    <!-- Benefits Section -->
+    {% include 'core/benefits.html' %}
+
+    <!-- Technology Section -->
+    {% include 'core/technology.html' %}
+
+    <!-- CTA Section -->
+    {% include 'core/cta.html' %}
+
+    <!-- Footer -->
+    {% include 'core/footer.html' %}
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Animation JavaScript -->
+    <script>
+      // Intersection Observer for scroll animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: "0px 0px -50px 0px",
+      };
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            entry.target.classList.add("animated");
+          }
+        });
+      }, observerOptions);
+
+      // Observe all elements with animation classes
+      document.addEventListener("DOMContentLoaded", () => {
+        const animatedElements = document.querySelectorAll(
+          ".animate-on-scroll, .fade-in, .fade-in-up, .fade-in-left, .fade-in-right, .scale-in, .step-card, .card-benefits, .section-header"
+        );
+
+        animatedElements.forEach((el) => observer.observe(el));
+
+        // Navbar scroll effect
+        const navbar = document.querySelector(".navbar");
+        let lastScrollTop = 0;
+
+        window.addEventListener("scroll", () => {
+          const scrollTop =
+            window.pageYOffset || document.documentElement.scrollTop;
+
+          if (scrollTop > 100) {
+            navbar.classList.add("scrolled");
+          } else {
+            navbar.classList.remove("scrolled");
+          }
+
+          lastScrollTop = scrollTop;
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+          anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute("href"));
+            if (target) {
+              target.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }
+          });
+        });
+
+        // Add stagger delay to cards and steps
+        const stepCards = document.querySelectorAll(".step-card");
+        stepCards.forEach((card, index) => {
+          card.style.transitionDelay = `${index * 0.2}s`;
+        });
+
+        const benefitCards = document.querySelectorAll(".card-benefits");
+        benefitCards.forEach((card, index) => {
+          card.style.transitionDelay = `${index * 0.2}s`;
+        });
+
+        // Count-up animation for numbers
+        const countUpElements = document.querySelectorAll(".stat-number");
+        const countUp = (element, start, end, duration) => {
+          let startTime = null;
+          const step = (timestamp) => {
+            if (!startTime) startTime = timestamp;
+            const progress = Math.min((timestamp - startTime) / duration, 1);
+            const current = Math.floor(progress * (end - start) + start);
+            element.textContent = current;
+            if (progress < 1) {
+              requestAnimationFrame(step);
+            }
+          };
+          requestAnimationFrame(step);
+        };
+
+        const numberObserver = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const target = entry.target;
+              const endValue = parseInt(
+                target.getAttribute("data-count") || target.textContent
+              );
+              countUp(target, 0, endValue, 2000);
+              numberObserver.unobserve(target);
+            }
+          });
+        });
+
+        countUpElements.forEach((el) => numberObserver.observe(el));
+      });
+
+      // Add loading state management
+      window.addEventListener("load", () => {
+        document.body.classList.add("loaded");
+      });
+
+      // Parallax effect for hero background
+      window.addEventListener("scroll", () => {
+        const scrolled = window.pageYOffset;
+        const parallax = document.querySelector(".hero-bg");
+        if (parallax) {
+          const speed = scrolled * 0.5;
+          parallax.style.transform = `translateY(${speed}px)`;
+        }
+      });
+    </script>
+  </body>
+</html>

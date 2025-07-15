@@ -1,0 +1,70 @@
+{% load static %}
+<nav class="navbar">
+  <div class="container">
+    <div class="nav-container">
+      <!-- Logo -->
+      <div class="logo">
+        <i class="fas fa-leaf"></i>
+        <span>Agricure</span>
+      </div>
+
+      <!-- Navigation Links -->
+      <div class="nav-links" id="nav-links">
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How it Works</a>
+        <a href="#benefits">Benefits</a>
+      </div>
+
+      <!-- Right side wrapper -->
+      <div class="nav-right">
+        {% if user.is_authenticated %}
+        <!-- Authenticated user menu -->
+        <div class="dropdown">
+          <button
+            class="btn btn-outline-primary dropdown-toggle"
+            type="button"
+            id="userDropdown"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="fas fa-user me-1"></i>{{
+            user.first_name|default:user.username }}
+          </button>
+          <ul class="dropdown-menu" aria-labelledby="userDropdown">
+            <li>
+              <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                <i class="fas fa-user me-2"></i>Profile
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="{% url 'accounts:edit_profile' %}">
+                <i class="fas fa-edit me-2"></i>Edit Profile
+              </a>
+            </li>
+            <li><hr class="dropdown-divider" /></li>
+            <li>
+              <a class="dropdown-item" href="{% url 'accounts:logout' %}">
+                <i class="fas fa-sign-out-alt me-2"></i>Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+        {% else %}
+        <!-- Not authenticated - show login/signup -->
+        <a href="{% url 'accounts:login' %}" class="btn btn-login">Login</a>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-primary">
+          <i class="fas fa-user-plus me-1"></i> Sign Up
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Scroll to top button -->
+<button class="scroll-to-top" id="scroll-to-top" aria-label="Scroll to top">
+  <i class="fas fa-chevron-up"></i>
+</button>
+
+<script src="{% static 'js/navbar.js' %}"></script>

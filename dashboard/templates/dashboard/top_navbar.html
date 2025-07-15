@@ -1,0 +1,128 @@
+<!-- Top Navigation -->
+ {% load static %}
+<nav class="top-navbar">
+  <div class="navbar-content">
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" type="button" onclick="toggleMobileSidebar()">
+      <div class="toggle-icon">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+      </div>
+    </button>
+
+    <!-- Logo Section -->
+    <div class="sidebar-logo">
+      <div class="d-flex align-items-center gap-2 logo-container">
+        <i class="fas fa-leaf fs-2"></i>
+        <div>
+          <h1 class="sidebar-brand-title">Agricure</h1>
+          <p class="sidebar-brand-subtitle">Disease Detection</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Navigation -->
+    <div class="navbar-right">
+      <!-- Notifications -->
+      <div class="dropdown notification-dropdown">
+        <button
+          class="notification-btn"
+          onclick="toggleDropdown(this.parentElement)"
+        >
+          <i class="fas fa-bell bell-icon"></i>
+          <span class="notification-badge">3</span>
+        </button>
+        <div class="dropdown-menu">
+          <div class="dropdown-header">Notifications</div>
+          <a href="#" class="dropdown-item notification-item">
+            <div class="notification-content">
+              <i class="fas fa-check-circle text-success notification-icon"></i>
+              <span class="notification-text"
+                >Diagnosis completed for tomato sample</span
+              >
+            </div>
+          </a>
+          <a href="#" class="dropdown-item notification-item">
+            <div class="notification-content">
+              <i class="fas fa-upload text-info notification-icon"></i>
+              <span class="notification-text"
+                >New image uploaded successfully</span
+              >
+            </div>
+          </a>
+          <a href="#" class="dropdown-item notification-item">
+            <div class="notification-content">
+              <i class="fas fa-user text-warning notification-icon"></i>
+              <span class="notification-text">Profile updated</span>
+            </div>
+          </a>
+          <hr class="dropdown-divider" />
+          <div class="view-all-btn">
+            <a href="#" class="dropdown-item">View All</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Profile -->
+      <div class="dropdown">
+        <div class="user-profile" onclick="toggleDropdown(this.parentElement)">
+          <div class="user-avatar">
+            {{ user.first_name.0|default:user.email.0|upper }}
+          </div>
+          <span class="user-name">
+            {{ user.first_name|default:user.email|truncatechars:15 }}
+          </span>
+          <i class="fas fa-chevron-down dropdown-arrow"></i>
+        </div>
+        <div class="dropdown-menu">
+          <a href="{% url 'dashboard:profile' %}" class="dropdown-item">
+            <i class="fas fa-user-edit"></i>Profile
+          </a>
+          <a href="#" class="dropdown-item">
+            <i class="fas fa-cog"></i>Settings
+          </a>
+          <hr class="dropdown-divider" />
+          <a href="{% url 'core:landing' %}" class="dropdown-item">
+            <i class="fas fa-home"></i>Back to Home
+          </a>
+          <a href="{% url 'accounts:logout' %}" class="dropdown-item">
+            <i class="fas fa-sign-out-alt"></i>Logout
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Dropdown functionality
+  function toggleDropdown(element) {
+    // Close all other dropdowns
+    document.querySelectorAll(".dropdown.active").forEach((dropdown) => {
+      if (dropdown !== element) {
+        dropdown.classList.remove("active");
+      }
+    });
+
+    // Toggle current dropdown
+    element.classList.toggle("active");
+  }
+
+  // Close dropdowns when clicking outside
+  document.addEventListener("click", function (event) {
+    if (!event.target.closest(".dropdown")) {
+      document.querySelectorAll(".dropdown.active").forEach((dropdown) => {
+        dropdown.classList.remove("active");
+      });
+    }
+  });
+
+  // Mobile sidebar toggle (to be implemented in main dashboard JS)
+  function toggleMobileSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) {
+      sidebar.classList.toggle("show");
+    }
+  }
+</script>

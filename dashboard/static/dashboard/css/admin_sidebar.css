@@ -1,0 +1,127 @@
+/* Admin Sidebar Styles */
+.admin-sidebar {
+  width: 280px;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  padding-top: 76px; /* Account for navbar height */
+}
+
+.admin-sidebar .sidebar-brand {
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 20px;
+}
+
+.admin-sidebar .sidebar-brand i {
+  font-size: 24px;
+  color: #4caf50;
+  margin-right: 12px;
+}
+
+.admin-sidebar .sidebar-brand span {
+  font-size: 18px;
+  font-weight: 600;
+  color: white;
+}
+
+.admin-sidebar .nav-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  padding: 0 24px;
+}
+
+.admin-sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.8);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  border-radius: 0;
+  margin: 2px 12px;
+  border-radius: 8px;
+}
+
+.admin-sidebar .nav-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(4px);
+}
+
+.admin-sidebar .nav-link.active {
+  background: rgba(76, 175, 80, 0.2);
+  color: white;
+  border-left: 4px solid #4caf50;
+  margin-left: 12px;
+}
+
+.admin-sidebar .nav-link i {
+  width: 20px;
+  text-align: center;
+  margin-right: 12px;
+  font-size: 14px;
+}
+
+.admin-sidebar .divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 20px 24px;
+}
+
+.admin-sidebar .sidebar-footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 20px 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.admin-sidebar .footer-item {
+  display: flex;
+  align-items: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-sidebar .footer-item i {
+  margin-right: 8px;
+  width: 16px;
+  text-align: center;
+}
+
+.admin-sidebar .footer-link {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.admin-sidebar .footer-link:hover {
+  color: #4caf50;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .admin-sidebar.show {
+    transform: translateX(0);
+  }
+}

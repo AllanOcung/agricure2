@@ -1,0 +1,274 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Welcome back, {{ user.first_name|default:user.email }} - Agricure{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard_main.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+  <!-- Hero Section with Stats -->
+  <div class="hero-section">
+    <div class="hero-overlay">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h2>Ready to monitor your crops today?</h2>
+        </div>
+        
+        <div class="hero-stats">
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-number">53</p>
+              <p class="stat-label">Diagnoses This Month</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-number">12</p>
+              <p class="stat-label">Diseases Detected</p>
+            </div>
+          </div>
+          
+          <div class="stat-card">
+            <div class="stat-content">
+              <p class="stat-number">Powdery Mildew</p>
+              <p class="stat-label">Most Common</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="content-grid">
+    <!-- Visual Analytics Section -->
+    <div class="analytics-section">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title text-primary">Visual Analytics</h3>
+          <span class="badge">Last 24hrs</span>
+        </div>
+        <div class="card-content">
+          <div class="chart-section">
+            <h4 class="chart-title">Environmental Sensor Trends</h4>
+            <div class="chart-container">
+              <canvas id="sensorTrendsChart"></canvas>
+            </div>
+          </div>
+          
+          <div class="chart-section">
+            <h4 class="chart-title">Disease Frequency Over Time</h4>
+            <div class="chart-container">
+              <canvas id="diseaseFrequencyChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IoT Device Summary -->
+    <div class="iot-section">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title text-orange">
+            <i class="fas fa-activity"></i>
+            IoT Device Summary
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="device-list">
+            <div class="device-item bg-blue">
+              <div class="device-info">
+                <i class="fas fa-tint device-icon"></i>
+                <div class="device-details">
+                  <p class="device-name">Soil Moisture Sensor</p>
+                  <p class="device-status online">
+                    <span class="status-dot"></span>
+                    Online
+                  </p>
+                </div>
+              </div>
+              <span class="device-value text-blue">38%</span>
+            </div>
+
+            <div class="device-item bg-red">
+              <div class="device-info">
+                <i class="fas fa-thermometer-half device-icon"></i>
+                <div class="device-details">
+                  <p class="device-name">Temperature Sensor</p>
+                  <p class="device-status online">
+                    <span class="status-dot"></span>
+                    Online
+                  </p>
+                </div>
+              </div>
+              <span class="device-value text-red">27°C</span>
+            </div>
+
+            <div class="device-item bg-purple">
+              <div class="device-info">
+                <i class="fas fa-wind device-icon"></i>
+                <div class="device-details">
+                  <p class="device-name">Humidity Sensor</p>
+                  <p class="device-status online">
+                    <span class="status-dot"></span>
+                    Online
+                  </p>
+                </div>
+              </div>
+              <span class="device-value text-purple">62%</span>
+            </div>
+          </div>
+
+          <div class="divider-line"></div>
+
+          <div class="device-summary1">
+            <div class="devices-summary">
+            <p>3 devices connected</p>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Diagnosis Results -->
+    <div class="diagnosis-section">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title text-primary">Recent Diagnosis Results</h3>
+          <span class="badge">5 Results</span>
+        </div>
+        <div class="card-content">
+          <div class="diagnosis-list">
+            <div class="diagnosis-item">
+              <div class="diagnosis-info">
+                <div class="diagnosis-icon">
+                  <i class="fas fa-leaf"></i>
+                </div>
+                <div class="diagnosis-details">
+                  <h4>Tomato</h4>
+                  <p class="disease-name">Late Blight</p>
+                  <p class="diagnosis-date">
+                    <i class="fas fa-clock"></i>
+                    2024-01-15
+                  </p>
+                </div>
+              </div>
+              <div class="diagnosis-actions">
+                <span class="severity-badge severe">Severe</span>
+                <p class="confidence">96.0% confidence</p>
+                <button class="btn-view">
+                  <i class="fas fa-eye"></i>
+                  View Details
+                </button>
+              </div>
+            </div>
+
+            <div class="diagnosis-item">
+              <div class="diagnosis-info">
+                <div class="diagnosis-icon">
+                  <i class="fas fa-leaf"></i>
+                </div>
+                <div class="diagnosis-details">
+                  <h4>Corn</h4>
+                  <p class="disease-name">Northern Corn Leaf Blight</p>
+                  <p class="diagnosis-date">
+                    <i class="fas fa-clock"></i>
+                    2024-01-14
+                  </p>
+                </div>
+              </div>
+              <div class="diagnosis-actions">
+                <span class="severity-badge moderate">Moderate</span>
+                <p class="confidence">93.0% confidence</p>
+                <button class="btn-view">
+                  <i class="fas fa-eye"></i>
+                  View Details
+                </button>
+              </div>
+            </div>
+
+            <div class="diagnosis-item">
+              <div class="diagnosis-info">
+                <div class="diagnosis-icon">
+                  <i class="fas fa-leaf"></i>
+                </div>
+                <div class="diagnosis-details">
+                  <h4>Wheat</h4>
+                  <p class="disease-name">Powdery Mildew</p>
+                  <p class="diagnosis-date">
+                    <i class="fas fa-clock"></i>
+                    2024-01-13
+                  </p>
+                </div>
+              </div>
+              <div class="diagnosis-actions">
+                <span class="severity-badge low">Low</span>
+                <p class="confidence">89.0% confidence</p>
+                <button class="btn-view">
+                  <i class="fas fa-eye"></i>
+                  View Details
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="notifications-section">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title text-orange">
+            <i class="fas fa-exclamation-circle"></i>
+            Notifications
+            <span class="badge badge-danger">3</span>
+          </h3>
+        </div>
+        <div class="card-content">
+          <div class="notification-list">
+            <div class="notification-item">
+              <i class="fas fa-wind notification-icon"></i>
+              <div class="notification-content">
+                <h4>Weather Alert</h4>
+                <p>Rain expected tomorrow — avoid spraying.</p>
+                <span class="notification-time">2 hours ago</span>
+              </div>
+            </div>
+
+            <div class="notification-item">
+              <i class="fas fa-exclamation-triangle notification-icon"></i>
+              <div class="notification-content">
+                <h4>Disease Alert</h4>
+                <p>Late blight is rising in your region.</p>
+                <span class="notification-time">4 hours ago</span>
+              </div>
+            </div>
+
+            <div class="notification-item">
+              <i class="fas fa-thermometer-half notification-icon"></i>
+              <div class="notification-content">
+                <h4>Temperature Alert</h4>
+                <p>Optimal temperature for spraying detected.</p>
+                <span class="notification-time">6 hours ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'dashboard/js/dashboard_charts.js' %}"></script>
+{% endblock %}
+      

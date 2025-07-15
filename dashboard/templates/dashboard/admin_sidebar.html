@@ -1,0 +1,165 @@
+<!-- Admin Sidebar -->
+<nav id="admin-sidebar" class="sidebar admin-sidebar">
+  <div class="sidebar-sticky">
+    <!-- Admin Logo/Brand -->
+    <div class="sidebar-brand">
+      <i class="fas fa-cogs"></i>
+      <span>Admin Panel</span>
+    </div>
+
+    <!-- Navigation Sections -->
+    <div class="sidebar-nav">
+      <!-- Dashboard Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Dashboard</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            href="{% url 'dashboard:admin:dashboard' %}"
+          >
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Overview</span>
+          </a>
+          <a
+            class="nav-link {% if 'stats' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:api_stats' %}"
+          >
+            <i class="fas fa-chart-bar"></i>
+            <span>Statistics</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Model Management Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">AI Models</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if 'model_management' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:model_management' %}"
+          >
+            <i class="fas fa-brain"></i>
+            <span>Model Management</span>
+          </a>
+          <a
+            class="nav-link {% if 'train_model' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:train_model' %}"
+          >
+            <i class="fas fa-play"></i>
+            <span>Train Model</span>
+          </a>
+          <a
+            class="nav-link {% if 'training_logs' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:training_logs' %}"
+          >
+            <i class="fas fa-list"></i>
+            <span>Training Logs</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Dataset Management Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Dataset</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if 'dataset_management' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:dataset_management' %}"
+          >
+            <i class="fas fa-database"></i>
+            <span>Dataset Management</span>
+          </a>
+          <a
+            class="nav-link {% if 'upload_dataset' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:upload_dataset' %}"
+          >
+            <i class="fas fa-upload"></i>
+            <span>Upload Data</span>
+          </a>
+          <a
+            class="nav-link {% if 'validate_dataset' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:validate_dataset' %}"
+          >
+            <i class="fas fa-check-circle"></i>
+            <span>Validate Dataset</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- System Management Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">System</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if 'system_health' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:system_health' %}"
+          >
+            <i class="fas fa-heartbeat"></i>
+            <span>System Health</span>
+          </a>
+          <a
+            class="nav-link {% if 'health_check' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:health_check' %}"
+          >
+            <i class="fas fa-stethoscope"></i>
+            <span>Health Check</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- User Management Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Users</h3>
+        <div class="nav-section-items">
+          <a class="nav-link" href="/admin/auth/user/">
+            <i class="fas fa-users"></i>
+            <span>User Management</span>
+          </a>
+          <a class="nav-link" href="{% url 'dashboard:history' %}">
+            <i class="fas fa-history"></i>
+            <span>User Activity</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Quick Actions Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Quick Actions</h3>
+        <div class="nav-section-items">
+          <a class="nav-link" href="{% url 'dashboard:upload' %}">
+            <i class="fas fa-camera"></i>
+            <span>Test Diagnosis</span>
+          </a>
+          <a class="nav-link" href="/admin/">
+            <i class="fas fa-cog"></i>
+            <span>Django Admin</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+      <div class="footer-item">
+        <i class="fas fa-user-shield"></i>
+        <span>Admin: {{ user.username }}</span>
+      </div>
+      <div class="footer-item">
+        <a href="{% url 'dashboard:home' %}" class="footer-link">
+          <i class="fas fa-eye"></i>
+          <span>View as Farmer</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>

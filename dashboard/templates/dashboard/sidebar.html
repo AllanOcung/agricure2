@@ -1,0 +1,122 @@
+<!-- Sidebar -->
+<nav id="sidebar" class="sidebar">
+  <div class="sidebar-sticky">
+    <!-- Navigation Sections -->
+    <div class="sidebar-nav">
+      <!-- Main Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Main</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+            href="{% url 'dashboard:home' %}"
+          >
+            <i class="fas fa-chart-line"></i>
+            <span>Dashboard</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Diagnosis Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Diagnosis</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"
+            href="{% url 'dashboard:upload' %}"
+          >
+            <i class="fas fa-camera"></i>
+            <span>Upload Image</span>
+          </a>
+          <a
+            class="nav-link {% if request.resolver_match.url_name == 'history' %}active{% endif %}"
+            href="{% url 'dashboard:history' %}"
+          >
+            <i class="fas fa-history"></i>
+            <span>Diagnosis History</span>
+          </a>
+          <a class="nav-link" href="#">
+            <i class="fas fa-brain"></i>
+            <span>AI Recommendations</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Monitoring Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Monitoring</h3>
+        <div class="nav-section-items">
+          <a class="nav-link" href="#">
+            <i class="fas fa-wifi"></i>
+            <span>IoT Monitoring</span>
+          </a>
+          <a class="nav-link" href="#">
+            <i class="fas fa-chart-bar"></i>
+            <span>Analytics</span>
+          </a>
+          <a class="nav-link" href="#">
+            <i class="fas fa-file-text"></i>
+            <span>Reports</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Account Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Account</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if request.resolver_match.url_name == 'profile' %}active{% endif %}"
+            href="{% url 'dashboard:profile' %}"
+          >
+            <i class="fas fa-user-edit"></i>
+            <span>Profile</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Admin Section -->
+      <div class="nav-section">
+        <h3 class="nav-section-title">Admin</h3>
+        <div class="nav-section-items">
+          <a
+            class="nav-link {% if 'admin' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:dashboard' %}"
+          >
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Admin Dashboard</span>
+          </a>
+          <a
+            class="nav-link {% if 'model' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:model_management' %}"
+          >
+            <i class="fas fa-brain"></i>
+            <span>Model Management</span>
+          </a>
+          <a
+            class="nav-link {% if 'train' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:train_model' %}"
+          >
+            <i class="fas fa-play"></i>
+            <span>Train Model</span>
+          </a>
+          <a
+            class="nav-link {% if 'dataset' in request.resolver_match.url_name %}active{% endif %}"
+            href="{% url 'dashboard:admin:dataset_management' %}"
+          >
+            <i class="fas fa-database"></i>
+            <span>Dataset Management</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>

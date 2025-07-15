@@ -1,0 +1,16 @@
+{
+  "class_names": [
+    "Tomato healthy",
+    "Tomato leaf blight",
+    "Tomato leaf curl",
+    "Tomato septoria leaf spot",
+    "Tomato verticulium wilt"
+  ],
+  "input_shape": [
+    224,
+    224,
+    3
+  ],
+  "model_version": "v1.0",
+  "created_at": "2025-07-14T20:13:34.173249"
+}

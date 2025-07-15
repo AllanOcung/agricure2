@@ -1,0 +1,169 @@
+{% extends 'dashboard/base_dashboard.html' %} {% load static %} {% block content
+%}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5 class="card-title mb-0">
+          <i class="fas fa-history me-2"></i>Diagnosis History
+        </h5>
+        <div>
+          <button class="btn btn-outline-secondary btn-sm me-2">
+            <i class="fas fa-filter me-1"></i>Filter
+          </button>
+          <button class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-download me-1"></i>Export
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        {% if diagnoses %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Crop Type</th>
+                <th>Diagnosis</th>
+                <th>Confidence</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for diagnosis in diagnoses %}
+              <tr>
+                <td>{{ diagnosis.created_at|date:"M d, Y H:i" }}</td>
+                <td>{{ diagnosis.crop_type|title }}</td>
+                <td>{{ diagnosis.disease_name }}</td>
+                <td>
+                  <span
+                    class="badge bg-{% if diagnosis.confidence >= 90 %}success{% elif diagnosis.confidence >= 70 %}warning{% else %}danger{% endif %}"
+                  >
+                    {{ diagnosis.confidence }}%
+                  </span>
+                </td>
+                <td>
+                  <span
+                    class="badge bg-{% if diagnosis.status == 'completed' %}success{% elif diagnosis.status == 'processing' %}warning{% else %}secondary{% endif %}"
+                  >
+                    {{ diagnosis.status|title }}
+                  </span>
+                </td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-outline-primary me-1"
+                    title="View Details"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    title="Download Report"
+                  >
+                    <i class="fas fa-download"></i>
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+          <i class="fas fa-microscope fa-4x text-muted mb-4"></i>
+          <h4 class="text-muted">No Diagnoses Yet</h4>
+          <p class="text-muted mb-4">
+            You haven't uploaded any images for diagnosis yet.
+          </p>
+          <a href="{% url 'dashboard:upload' %}" class="btn btn-primary">
+            <i class="fas fa-upload me-2"></i>Upload Your First Image
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if diagnoses %}
+<!-- Pagination -->
+<div class="row mt-3">
+  <div class="col-12">
+    <nav aria-label="Diagnosis history pagination">
+      <ul class="pagination justify-content-center">
+        <li class="page-item disabled">
+          <a class="page-link" href="#" tabindex="-1">Previous</a>
+        </li>
+        <li class="page-item active">
+          <a class="page-link" href="#">1</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="#">2</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="#">3</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" href="#">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+{% endif %}
+
+<!-- Summary Cards -->
+<div class="row mt-4">
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <i class="fas fa-chart-pie text-primary fa-2x mb-2"></i>
+        <h6>Total Diagnoses</h6>
+        <h4 class="text-primary">{{ diagnoses|length|default:0 }}</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <i class="fas fa-check-circle text-success fa-2x mb-2"></i>
+        <h6>Successful</h6>
+        <h4 class="text-success">0</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <i class="fas fa-exclamation-triangle text-warning fa-2x mb-2"></i>
+        <h6>Diseases Found</h6>
+        <h4 class="text-warning">0</h4>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <i class="fas fa-calendar text-info fa-2x mb-2"></i>
+        <h6>This Month</h6>
+        <h4 class="text-info">0</h4>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add any interactive functionality for the history page
+    const filterBtn = document.querySelector('[data-bs-toggle="filter"]');
+
+    // TODO: Implement filtering functionality
+    // TODO: Implement export functionality
+    // TODO: Implement detailed view modal
+  });
+</script>
+{% endblock %}

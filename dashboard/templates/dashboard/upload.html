@@ -1,0 +1,490 @@
+{% extends 'dashboard/base_dashboard.html' %} {% load static %} 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/upload.css' %}" />
+{% endblock %} {% block content %}
+<div class="upload-page">
+  {% csrf_token %}
+  <!-- Header -->
+  <div class="upload-header">
+    <h1 class="upload-title">Crop Diagnosis</h1>
+    <p class="upload-subtitle">
+      Upload an image of your crop to get instant AI-powered disease diagnosis
+    </p>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="upload-grid">
+    <!-- Upload Section -->
+    <div class="upload-card">
+      <div class="upload-card-header">
+        <h2 class="upload-card-title">Upload Crop Image</h2>
+      </div>
+      <div class="upload-card-content">
+        <div class="upload-drop-zone" id="uploadArea">
+          <div class="upload-icon-container">
+            <i class="fas fa-upload upload-icon"></i>
+          </div>
+
+          <h3 class="upload-drop-title">Drop your crop image here</h3>
+          <p class="upload-drop-subtitle">or click to browse your files</p>
+
+          <button
+            type="button"
+            class="upload-button"
+            onclick="document.getElementById('imageInput').click()"
+          >
+            <i class="fas fa-camera"></i>
+            Choose Image
+          </button>
+
+          <p class="upload-file-info">Supports: JPG, PNG, WebP (Max 10MB)</p>
+
+          <input
+            type="file"
+            id="imageInput"
+            name="image"
+            accept="image/*"
+            class="upload-file-input"
+            required
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="upload-card">
+      <div class="upload-card-header">
+        <h2 class="upload-card-title">Diagnosis Results</h2>
+      </div>
+      <div class="upload-card-content">
+        <div class="results-container">
+          <!-- Empty State -->
+          <div id="emptyState" class="results-empty">
+            <i class="fas fa-image results-empty-icon"></i>
+            <h3 class="results-empty-title">
+              Upload and analyze an image to see results
+            </h3>
+            <p class="results-empty-subtitle">
+              Your AI diagnosis will appear here once you upload an image
+            </p>
+          </div>
+
+          <!-- Image Preview and Analysis -->
+          <div
+            id="imagePreview"
+            class="image-preview-container"
+            style="display: none"
+          >
+            <img id="previewImg" class="preview-image" alt="Uploaded crop" />
+            <div class="analyzing-container">
+              <div class="spinner"></div>
+              <p class="analyzing-text">Analyzing image...</p>
+            </div>
+            <button type="button" class="remove-button" onclick="removeImage()">
+              <i class="fas fa-times"></i>
+              Remove Image
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tips Section -->
+  <div class="tips-card">
+    <div class="tips-content">
+      <i class="fas fa-exclamation-triangle tips-icon"></i>
+      <div>
+        <h3 class="tips-title">Tips for Better Results</h3>
+        <ul class="tips-list">
+          <li class="tips-item">
+            <div class="tips-bullet"></div>
+            Take clear, well-lit photos showing the affected plant parts
+          </li>
+          <li class="tips-item">
+            <div class="tips-bullet"></div>
+            Include both healthy and diseased areas for comparison
+          </li>
+          <li class="tips-item">
+            <div class="tips-bullet"></div>
+            Avoid blurry or dark images for accurate diagnosis
+          </li>
+          <li class="tips-item">
+            <div class="tips-bullet"></div>
+            Multiple angles of the same issue can improve accuracy
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const uploadArea = document.getElementById("uploadArea");
+    const imageInput = document.getElementById("imageInput");
+    const imagePreview = document.getElementById("imagePreview");
+    const previewImg = document.getElementById("previewImg");
+    const emptyState = document.getElementById("emptyState");
+    const analyzingContainer = document.querySelector(".analyzing-container");
+
+    // Get CSRF token
+    const csrfToken = document.querySelector(
+      "[name=csrfmiddlewaretoken]"
+    ).value;
+
+    // Drag and drop functionality
+    uploadArea.addEventListener("click", () => imageInput.click());
+
+    uploadArea.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.classList.add("drag-active");
+    });
+
+    uploadArea.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.classList.remove("drag-active");
+    });
+
+    uploadArea.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.classList.add("drag-active");
+    });
+
+    uploadArea.addEventListener("drop", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      uploadArea.classList.remove("drag-active");
+
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        imageInput.files = files;
+        handleImageUpload(files[0]);
+      }
+    });
+
+    imageInput.addEventListener("change", (e) => {
+      if (e.target.files.length > 0) {
+        handleImageUpload(e.target.files[0]);
+      }
+    });
+
+    function handleImageUpload(file) {
+      // Validate file size (10MB max)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size too large. Please choose a file smaller than 10MB.");
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        alert("Please select a valid image file.");
+        return;
+      }
+
+      // Show preview
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        previewImg.src = e.target.result;
+        emptyState.style.display = "none";
+        imagePreview.style.display = "block";
+
+        // Show analyzing state
+        showAnalyzingState();
+
+        // Submit to server for AI analysis
+        uploadAndAnalyze(file);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function showAnalyzingState() {
+      analyzingContainer.style.display = "block";
+      analyzingContainer.innerHTML = `
+        <div class="spinner"></div>
+        <p class="analyzing-text">Analyzing image...</p>
+      `;
+    }
+
+    function uploadAndAnalyze(file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      formData.append("csrfmiddlewaretoken", csrfToken);
+
+      fetch("/dashboard/upload/", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "X-CSRFToken": csrfToken,
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            if (data.status === "completed") {
+              showResults(data);
+            } else if (data.status === "failed") {
+              showError(data.error || "Analysis failed");
+            } else {
+              // Still processing
+              setTimeout(() => checkAnalysisStatus(data.diagnosis_id), 2000);
+            }
+          } else {
+            showError(data.error || "Upload failed");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          showError("Network error occurred");
+        });
+    }
+
+    function checkAnalysisStatus(diagnosisId) {
+      // This would check the status of the diagnosis
+      // For now, we'll assume it completes quickly
+      console.log("Checking analysis status for diagnosis:", diagnosisId);
+    }
+
+    function showResults(data) {
+      const resultsHtml = `
+        <div class="diagnosis-results">
+          <div class="result-header">
+            <h4>Diagnosis Complete</h4>
+            <span class="confidence">Confidence: ${data.confidence_score.toFixed(
+              1
+            )}%</span>
+          </div>
+          
+          <div class="result-main">
+            <div class="disease-info">
+              <span class="disease-name">${data.detected_disease}</span>
+              <span class="severity-badge severity-${data.severity}">${
+        data.severity.charAt(0).toUpperCase() + data.severity.slice(1)
+      }</span>
+            </div>
+            
+            <div class="disease-status">
+              <i class="fas ${
+                data.is_diseased
+                  ? "fa-exclamation-triangle text-warning"
+                  : "fa-check-circle text-success"
+              }"></i>
+              <span>${
+                data.is_diseased ? "Disease Detected" : "Healthy Crop"
+              }</span>
+            </div>
+          </div>
+          
+          ${
+            data.recommendations && data.recommendations.length > 0
+              ? `
+          <div class="recommendations">
+            <h5>Recommendations:</h5>
+            <ul>
+              ${data.recommendations.map((rec) => `<li>${rec}</li>`).join("")}
+            </ul>
+          </div>
+          `
+              : ""
+          }
+          
+          <div class="result-actions">
+            <button type="button" class="btn btn-primary" onclick="saveToHistory(${
+              data.diagnosis_id
+            })">
+              <i class="fas fa-save"></i> Save to History
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="uploadAnother()">
+              <i class="fas fa-upload"></i> Upload Another
+            </button>
+          </div>
+        </div>
+      `;
+
+      analyzingContainer.innerHTML = resultsHtml;
+    }
+
+    function showError(errorMessage) {
+      analyzingContainer.innerHTML = `
+        <div class="error-state">
+          <i class="fas fa-exclamation-triangle text-danger fa-2x mb-3"></i>
+          <h5>Analysis Failed</h5>
+          <p class="text-danger">${errorMessage}</p>
+          <button type="button" class="btn btn-outline-primary" onclick="removeImage()">
+            <i class="fas fa-redo"></i> Try Again
+          </button>
+        </div>
+      `;
+    }
+
+    // Global functions
+    window.removeImage = function () {
+      imageInput.value = "";
+      imagePreview.style.display = "none";
+      emptyState.style.display = "flex";
+      uploadArea.classList.remove("drag-active");
+    };
+
+    window.saveToHistory = function (diagnosisId) {
+      // Redirect to diagnosis detail page
+      window.location.href = `/dashboard/diagnosis/${diagnosisId}/`;
+    };
+
+    window.uploadAnother = function () {
+      removeImage();
+    };
+  });
+</script>
+
+<style>
+  .diagnosis-results {
+    text-align: left;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: white;
+  }
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .result-header h4 {
+    margin: 0;
+    color: #059669;
+  }
+
+  .confidence {
+    background: #f0fdf4;
+    color: #166534;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .result-main {
+    margin-bottom: 20px;
+  }
+
+  .disease-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .disease-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .severity-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .severity-healthy {
+    background: #f0fdf4;
+    color: #166534;
+  }
+  .severity-low {
+    background: #fef3c7;
+    color: #d97706;
+  }
+  .severity-medium {
+    background: #fed7d7;
+    color: #c53030;
+  }
+  .severity-high {
+    background: #fecaca;
+    color: #dc2626;
+  }
+  .severity-critical {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .disease-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .recommendations h5 {
+    margin: 0 0 8px 0;
+    color: #374151;
+  }
+
+  .recommendations ul {
+    margin: 0;
+    padding-left: 20px;
+  }
+
+  .recommendations li {
+    margin-bottom: 4px;
+    color: #6b7280;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .error-state {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .error-state h5 {
+    color: #dc2626;
+    margin-bottom: 8px;
+  }
+
+  .btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: #059669;
+    color: white;
+  }
+
+  .btn-secondary {
+    background: #6b7280;
+    color: white;
+  }
+
+  .btn-outline-primary {
+    background: transparent;
+    color: #059669;
+    border: 1px solid #059669;
+  }
+
+  .btn:hover {
+    opacity: 0.9;
+  }
+</style>
+{% endblock %}

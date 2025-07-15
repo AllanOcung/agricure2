@@ -1,0 +1,48 @@
+/* Step Cards */
+      .step-card {
+        text-align: center;
+        position: relative;
+      }
+
+      .step-number {
+        width: 4rem;
+        height: 4rem;
+        background: var(--primary);
+        color: var(--white);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 auto 1.5rem;
+      }
+
+      .step-arrow {
+        display: none;
+        position: absolute;
+        top: 2rem;
+        right: -3rem;
+        color: var(--muted-foreground);
+        font-size: 1.5rem;
+      }
+
+      @media (min-width: 768px) {
+        .step-arrow {
+          display: block;
+        }
+
+        .step-card:last-child .step-arrow {
+          display: none;
+        }
+      }
+
+      .step-card h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      .step-card p {
+        color: var(--muted-foreground);
+      }

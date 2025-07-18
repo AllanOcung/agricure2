@@ -9,12 +9,11 @@ from PIL import Image
 import os
 import json
 from .models import CropImage, DiagnosisResult, Disease
-from .ai_service import ai_service
-from .decorators import farmer_required, role_required
+
 
 User = get_user_model()
 
-@role_required(['farmer'])
+@login_required
 def dashboard_home(request):
     """
     Main dashboard view for authenticated users

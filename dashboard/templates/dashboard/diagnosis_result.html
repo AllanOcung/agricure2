@@ -1,0 +1,382 @@
+{% extends 'base.html' %} {% load static %} {% block title %}Diagnosis Result{%
+endblock %} {% block extra_css %}
+<style>
+  .diagnosis-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 30px;
+  }
+
+  .result-card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+
+  .confidence-bar {
+    height: 10px;
+    border-radius: 5px;
+    background: #e9ecef;
+    overflow: hidden;
+  }
+
+  .confidence-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+
+  .confidence-high {
+    background: #28a745;
+  }
+  .confidence-medium {
+    background: #ffc107;
+  }
+  .confidence-low {
+    background: #dc3545;
+  }
+
+  .disease-badge {
+    font-size: 1.1em;
+    padding: 8px 16px;
+  }
+
+  .healthy-badge {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+
+  .diseased-badge {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+
+  .recommendation-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-left: 4px solid #007bff;
+    background: #f8f9fa;
+    border-radius: 5px;
+  }
+
+  .severity-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+
+  .severity-critical {
+    background: #dc3545;
+  }
+  .severity-high {
+    background: #fd7e14;
+  }
+  .severity-medium {
+    background: #ffc107;
+  }
+  .severity-low {
+    background: #28a745;
+  }
+
+  .image-container {
+    position: relative;
+    text-align: center;
+  }
+
+  .diagnosis-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  .model-info {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-top: 10px;
+  }
+
+  .processing-time {
+    font-size: 0.85em;
+    color: #6c757d;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container mt-4">
+  <!-- Diagnosis Header -->
+  <div class="diagnosis-header">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2><i class="fas fa-microscope"></i> Diagnosis Complete</h2>
+        <p class="mb-0">Analysis of {{ crop_image.original_filename }}</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <div class="badge bg-light text-dark fs-6">
+          {{ diagnosis.created_at|date:"M d, Y H:i" }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main Result -->
+    <div class="col-md-8">
+      <div class="result-card card">
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="image-container">
+                <img
+                  src="{{ crop_image.image.url }}"
+                  alt="{{ crop_image.original_filename }}"
+                  class="diagnosis-image"
+                />
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="mb-4">
+                <h4>Diagnosis Result</h4>
+                {% if diagnosis.is_diseased %}
+                <div class="disease-badge diseased-badge badge">
+                  <i class="fas fa-exclamation-triangle"></i> Disease Detected
+                </div>
+                {% else %}
+                <div class="disease-badge healthy-badge badge">
+                  <i class="fas fa-check-circle"></i> Healthy
+                </div>
+                {% endif %}
+              </div>
+
+              {% if diagnosis.detected_disease %}
+              <div class="mb-4">
+                <h5>Detected Disease</h5>
+                <div class="d-flex align-items-center">
+                  <strong>{{ diagnosis.detected_disease.name }}</strong>
+                  {% if diagnosis.severity %}
+                  <span class="ms-2">
+                    <span
+                      class="severity-indicator severity-{{ diagnosis.severity }}"
+                    ></span>
+                    {{ diagnosis.severity|title }} Severity
+                  </span>
+                  {% endif %}
+                </div>
+                {% if diagnosis.detected_disease.description %}
+                <p class="mt-2 text-muted">
+                  {{ diagnosis.detected_disease.description }}
+                </p>
+                {% endif %}
+              </div>
+              {% endif %}
+
+              <!-- Confidence Score -->
+              <div class="mb-4">
+                <h5>Confidence Score</h5>
+                <div class="d-flex align-items-center">
+                  <span class="me-2">{{ diagnosis.confidence_score }}%</span>
+                  <div class="confidence-bar flex-grow-1">
+                    <div
+                      class="confidence-fill confidence-{% if diagnosis.confidence_score >= 80 %}high{% elif diagnosis.confidence_score >= 60 %}medium{% else %}low{% endif %}"
+                      style="width: {{ diagnosis.confidence_score }}%"
+                    ></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Processing Info -->
+              <div class="processing-time">
+                <i class="fas fa-clock"></i> Processed in {{
+                diagnosis.processing_time|floatformat:2 }} seconds {% if
+                model_used %} <br /><i class="fas fa-robot"></i> Using {{
+                model_used.name }} v{{ model_used.version }} {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      {% if diagnosis.recommendations %}
+      <div class="result-card card">
+        <div class="card-header">
+          <h5><i class="fas fa-lightbulb"></i> Recommendations</h5>
+        </div>
+        <div class="card-body">
+          {% for recommendation in diagnosis.recommendations %}
+          <div class="recommendation-item">{{ recommendation }}</div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Alternative Diseases -->
+      {% if diagnosis.alternative_diseases %}
+      <div class="result-card card">
+        <div class="card-header">
+          <h5><i class="fas fa-list-alt"></i> Alternative Possibilities</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Disease</th>
+                  <th>Confidence</th>
+                  <th>Likelihood</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for alt_disease in diagnosis.alternative_diseases %}
+                <tr>
+                  <td>{{ alt_disease.name }}</td>
+                  <td>{{ alt_disease.confidence|floatformat:1 }}%</td>
+                  <td>
+                    <div class="progress" style="height: 20px">
+                      <div
+                        class="progress-bar"
+                        role="progressbar"
+                        style="width: {{ alt_disease.confidence }}%"
+                        aria-valuenow="{{ alt_disease.confidence }}"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      ></div>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+      <!-- Image Details -->
+      <div class="result-card card">
+        <div class="card-header">
+          <h5><i class="fas fa-info-circle"></i> Image Details</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Filename:</strong></div>
+            <div class="col-sm-7">{{ crop_image.original_filename }}</div>
+          </div>
+          {% if crop_image.crop_type %}
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Crop Type:</strong></div>
+            <div class="col-sm-7">{{ crop_image.crop_type }}</div>
+          </div>
+          {% endif %} {% if crop_image.location %}
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Location:</strong></div>
+            <div class="col-sm-7">{{ crop_image.location }}</div>
+          </div>
+          {% endif %}
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Resolution:</strong></div>
+            <div class="col-sm-7">
+              {{ crop_image.image_width }}x{{ crop_image.image_height }}
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>File Size:</strong></div>
+            <div class="col-sm-7">
+              {{ crop_image.file_size|filesizeformat }}
+            </div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Uploaded:</strong></div>
+            <div class="col-sm-7">
+              {{ crop_image.uploaded_at|date:"M d, Y H:i" }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Model Information -->
+      {% if model_used %}
+      <div class="result-card card">
+        <div class="card-header">
+          <h5><i class="fas fa-robot"></i> Model Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Model:</strong></div>
+            <div class="col-sm-7">{{ model_used.name }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Version:</strong></div>
+            <div class="col-sm-7">{{ model_used.version }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Architecture:</strong></div>
+            <div class="col-sm-7">{{ model_used.architecture }}</div>
+          </div>
+          <div class="row mb-2">
+            <div class="col-sm-5"><strong>Accuracy:</strong></div>
+            <div class="col-sm-7">{{ model_used.validation_accuracy }}%</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="result-card card">
+        <div class="card-header">
+          <h5><i class="fas fa-cogs"></i> Actions</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-grid gap-2">
+            <a
+              href="{% url 'dashboard:upload_image' %}"
+              class="btn btn-primary"
+            >
+              <i class="fas fa-upload"></i> Upload Another Image
+            </a>
+            <a
+              href="{% url 'dashboard:my_diagnoses' %}"
+              class="btn btn-outline-secondary"
+            >
+              <i class="fas fa-history"></i> View All Diagnoses
+            </a>
+            <a
+              href="{% url 'dashboard:model_comparison' %}"
+              class="btn btn-outline-info"
+            >
+              <i class="fas fa-balance-scale"></i> Compare Models
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      {% if crop_image.notes %}
+      <div class="result-card card">
+        <div class="card-header">
+          <h5><i class="fas fa-sticky-note"></i> Notes</h5>
+        </div>
+        <div class="card-body">
+          <p class="mb-0">{{ crop_image.notes }}</p>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add any interactive features here
+    console.log("Diagnosis result page loaded");
+  });
+</script>
+{% endblock %}

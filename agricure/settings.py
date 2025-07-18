@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     'core',
     'accounts',
     'dashboard',
+    
+ 
 ]
 
 MIDDLEWARE = [
@@ -66,7 +68,6 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'dashboard.decorators.user_role_context',
             ],
         },
     },
@@ -127,6 +128,7 @@ TEMPLATES[0]['DIRS'] = [os.path.join(BASE_DIR, 'templates')]
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'core/static'),
     os.path.join(BASE_DIR, 'accounts/static'),
+    os.path.join(BASE_DIR, 'dashboard/static'),
 ]
 
 # Default primary key field type
@@ -148,13 +150,70 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For developm
 # EMAIL_PORT = 587
 # EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'your-email@example.com'
+
+
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs', 'agricure.log'),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'dashboard': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'ai_models': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+    },
+}
+
+# Create logs directory
+os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
 # EMAIL_HOST_PASSWORD = 'your-password'
 
 # Login/Logout URLs
 LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+LOGIN_REDIRECT_URL = '/accounts/login-redirect/'
 LOGOUT_REDIRECT_URL = '/'
 
 # Media files configuration (for user avatars)
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# File Upload Settings
+DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
+DATA_UPLOAD_MAX_NUMBER_FILES = 5000
+FILE_UPLOAD_MAX_MEMORY_SIZE = 100 * 1024 * 1024  # 100MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 500 * 1024 * 1024  # 500MB

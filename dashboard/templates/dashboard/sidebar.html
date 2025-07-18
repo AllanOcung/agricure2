@@ -1,6 +1,8 @@
 <!-- Sidebar -->
 <nav id="sidebar" class="sidebar">
   <div class="sidebar-sticky">
+    
+
     <!-- Navigation Sections -->
     <div class="sidebar-nav">
       <!-- Main Section -->
@@ -25,7 +27,7 @@
         <div class="nav-section-items">
           <a
             class="nav-link {% if request.resolver_match.url_name == 'upload' %}active{% endif %}"
-            href="{% url 'dashboard:upload' %}"
+            href="{% url 'dashboard:upload_image' %}"
           >
             <i class="fas fa-camera"></i>
             <span>Upload Image</span>
@@ -77,43 +79,6 @@
           >
             <i class="fas fa-user-edit"></i>
             <span>Profile</span>
-          </a>
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <!-- Admin Section -->
-      <div class="nav-section">
-        <h3 class="nav-section-title">Admin</h3>
-        <div class="nav-section-items">
-          <a
-            class="nav-link {% if 'admin' in request.resolver_match.url_name %}active{% endif %}"
-            href="{% url 'dashboard:admin:dashboard' %}"
-          >
-            <i class="fas fa-tachometer-alt"></i>
-            <span>Admin Dashboard</span>
-          </a>
-          <a
-            class="nav-link {% if 'model' in request.resolver_match.url_name %}active{% endif %}"
-            href="{% url 'dashboard:admin:model_management' %}"
-          >
-            <i class="fas fa-brain"></i>
-            <span>Model Management</span>
-          </a>
-          <a
-            class="nav-link {% if 'train' in request.resolver_match.url_name %}active{% endif %}"
-            href="{% url 'dashboard:admin:train_model' %}"
-          >
-            <i class="fas fa-play"></i>
-            <span>Train Model</span>
-          </a>
-          <a
-            class="nav-link {% if 'dataset' in request.resolver_match.url_name %}active{% endif %}"
-            href="{% url 'dashboard:admin:dataset_management' %}"
-          >
-            <i class="fas fa-database"></i>
-            <span>Dataset Management</span>
           </a>
         </div>
       </div>

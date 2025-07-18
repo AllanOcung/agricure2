@@ -1,0 +1,24 @@
+/* Technology Cards */
+      .tech-card {
+        text-align: center;
+        color: var(--white);
+      }
+
+      .tech-card .card-icon {
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0 auto 1rem;
+      }
+
+      .tech-card .card-icon i {
+        color: var(--white);
+      }
+
+      .tech-card h3 {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+      }
+
+      .tech-card p {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.875rem;
+      }

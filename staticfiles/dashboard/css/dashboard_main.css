@@ -1,0 +1,521 @@
+/* Dashboard Main Styles */
+
+/* Variables */
+:root {
+  --primary-color: #059669;
+  --orange-color: #ea580c;
+  --blue-color: #3b82f6;
+  --red-color: #ef4444;
+  --purple-color: #8b5cf6;
+  --green-color: #22c55e;
+  --text-muted: #6b7280;
+  --border-color: #e5e7eb;
+  --background-muted: #f9fafb;
+}
+
+/* Prevent horizontal scrolling */
+body {
+  overflow-x: hidden;
+  background: #ECFDF5;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 0;
+  /* max-width: 100%;
+  overflow-x: hidden; */
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  height: 280px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: url("/static/dashboard/images/dashboard.jpg");
+  background-size: cover;
+  background-position: center;
+  max-width: 100%;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hero-text h2 {
+  color: white;
+  font-size: 32px;
+  font-weight: 600;
+  margin: 0;
+  margin-bottom: 8px;
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 100%;
+   
+}
+
+.stat-card {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid white;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.stat-content {
+  text-align: center;
+}
+
+.stat-number {
+  font-size: 30px;
+  font-weight: 700;
+  color: #fb923c;
+  margin: 0 0 8px 0;
+}
+
+.stat-label {
+  color: white;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Content Grid */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  /* max-width: 100%;
+  overflow-x: hidden; */
+}
+
+/* Card Styles */
+.card {
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title.text-primary {
+  color: var(--primary-color);
+}
+
+.card-title.text-orange {
+  color: var(--orange-color);
+}
+
+.card-content {
+  padding: 20px;
+}
+
+/* Badge */
+.badge {
+  background: var(--background-muted);
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-danger {
+  background: #fef2f2;
+  color: var(--red-color);
+}
+
+/* Charts */
+.chart-section {
+  margin-bottom: 32px;
+}
+
+.chart-section:last-child {
+  margin-bottom: 0;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 16px 0;
+  color: #374151;
+}
+
+.chart-container {
+  height: 200px;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* IoT Device Section */
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.device-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.device-item.bg-blue {
+  background: #eff6ff;
+}
+
+.device-item.bg-red {
+  background: #fef2f2;
+}
+
+.device-item.bg-purple {
+  background: #faf5ff;
+}
+
+.device-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.device-icon {
+  font-size: 16px;
+}
+
+.device-item.bg-blue .device-icon {
+  color: var(--blue-color);
+}
+
+.device-item.bg-red .device-icon {
+  color: var(--red-color);
+}
+
+.device-item.bg-purple .device-icon {
+  color: var(--purple-color);
+}
+
+.device-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.device-name {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0;
+  color: #374151;
+}
+
+.device-status {
+  font-size: 12px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.device-status.online {
+  color: var(--green-color);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--green-color);
+  border-radius: 50%;
+}
+
+.device-value {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.text-blue {
+  color: #1e3a8a;
+}
+
+.text-red {
+  color: #991b1b;
+}
+
+.text-purple {
+  color: #6b21a8;
+}
+
+.divider-line {
+  height: 1px;
+  width: 80%;
+  background-color: var(--primary-color);
+  margin: 20px 0 20px 30px;
+}
+
+.device-summary1 {
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     padding: 8px;
+     width: 300px;
+}
+
+.devices-summary {
+  text-align: center;
+  padding: 5px;
+  background: #ECFDF5;
+  border-radius: 30px;
+  border: 1px solid var(--primary-color);
+  width: 150px;
+}
+
+.devices-summary p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: #166534;
+}
+
+/* Diagnosis Section */
+.diagnosis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.diagnosis-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: #ECFDF5;
+  border: 1px solid var(--primary-color);
+  border-radius: 8px;
+}
+
+.diagnosis-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.diagnosis-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--background-muted);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.diagnosis-icon i {
+  font-size: 24px;
+  color: var(--text-muted);
+}
+
+.diagnosis-details h4 {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #374151;
+}
+
+.disease-name {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+}
+
+.diagnosis-date {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.diagnosis-actions {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.severity-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+}
+
+.severity-badge.severe {
+  background: #fef2f2;
+  color: var(--red-color);
+}
+
+.severity-badge.moderate {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.severity-badge.low {
+  background: #f0fdf4;
+  color: var(--green-color);
+}
+
+.confidence {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.btn-view {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.btn-view:hover {
+  color: var(--primary-color);
+}
+
+/* Notifications Section */
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-left: 4px solid var(--primary-color);
+  background: #ECFDF5;
+  border-radius: 8px;
+}
+
+.notification-icon {
+  color: var(--primary-color);
+  font-size: 16px;
+  margin-top: 2px;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-content h4 {
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 4px 0;
+  color: #374151;
+}
+
+.notification-content p {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0 0 4px 0;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Responsive Design */
+@media (min-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 2fr 1fr;
+    grid-template-areas:
+      "analytics iot"
+      "diagnosis notifications";
+  }
+
+  .analytics-section {
+    grid-area: analytics;
+  }
+
+  .iot-section {
+    grid-area: iot;
+  }
+
+  .diagnosis-section {
+    grid-area: diagnosis;
+  }
+
+  .notifications-section {
+    grid-area: notifications;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-number {
+    font-size: 24px;
+  }
+
+  .hero-text h2 {
+    font-size: 24px;
+  }
+
+  .diagnosis-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .diagnosis-actions {
+    align-items: flex-start;
+    text-align: left;
+  }
+}

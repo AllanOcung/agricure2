@@ -7,6 +7,21 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from .forms import SignUpForm, LoginForm, CustomPasswordResetForm, UserProfileForm, UserUpdateForm
 from .models import UserProfile
+from dashboard.decorators import get_user_role
+
+
+def login_redirect_view(request):
+    """
+    Custom login redirect view that redirects users based on their role
+    """
+    if not request.user.is_authenticated:
+        return redirect('accounts:login')
+    
+    user_role = get_user_role(request.user)
+    if user_role == 'admin':
+        return redirect('dashboard:admin:dashboard')
+    else:
+        return redirect('dashboard:home')
 
 
 class CustomLoginView(LoginView):
@@ -15,7 +30,17 @@ class CustomLoginView(LoginView):
     redirect_authenticated_user = True
     
     def get_success_url(self):
-        return reverse_lazy('dashboard:home')
+        # Check if there's a next parameter
+        next_url = self.request.GET.get('next')
+        if next_url:
+            return next_url
+        
+        # Redirect based on user role
+        user_role = get_user_role(self.request.user)
+        if user_role == 'admin':
+            return reverse_lazy('dashboard:admin:dashboard')
+        else:
+            return reverse_lazy('dashboard:home')
 
 
 class SignUpView(CreateView):
@@ -59,8 +84,18 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 messages.success(request, f'Welcome back, {user.first_name}!')
+                
+                # Check if there's a next parameter
                 next_page = request.GET.get('next')
-                return redirect(next_page if next_page else 'dashboard:home')
+                if next_page:
+                    return redirect(next_page)
+                
+                # Redirect based on user role
+                user_role = get_user_role(user)
+                if user_role == 'admin':
+                    return redirect('dashboard:admin:dashboard')
+                else:
+                    return redirect('dashboard:home')
     else:
         form = LoginForm()
     return render(request, 'accounts/login.html', {'form': form})

@@ -1,0 +1,312 @@
+{% extends 'admin_dashboard/base.html' %} 
+{% block title %}Model Management{% endblock %} {% block page_actions %}
+<a href="{% url 'admin_dashboard:create_model' %}" class="btn btn-success">
+  <i class="fas fa-plus"></i> Create New Model
+</a>
+<a href="{% url 'admin_dashboard:training' %}" class="btn btn-primary">
+  <i class="fas fa-cogs"></i> Training Dashboard
+</a>
+{% endblock %} {% block content %}
+<!-- Models Overview Cards -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ page_obj.paginator.count }}</h4>
+            <p class="mb-0">Total Models</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-brain fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ trained_models_count|default:0 }}</h4>
+            <p class="mb-0">Trained Models</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-check-circle fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ training_models_count|default:0 }}</h4>
+            <p class="mb-0">Training</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-spinner fa-spin fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ production_models_count|default:0 }}</h4>
+            <p class="mb-0">In Production</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-rocket fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Models Table -->
+<div class="card">
+  <div class="card-header">
+    <h5 class="mb-0"><i class="fas fa-list"></i> All Models</h5>
+  </div>
+  <div class="card-body">
+    {% if page_obj.object_list %}
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Version</th>
+            <th>Architecture</th>
+            <th>Dataset</th>
+            <th>Status</th>
+            <th>Training Accuracy</th>
+            <th>Validation Accuracy</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for model in page_obj.object_list %}
+          <tr>
+            <td>
+              <a
+                href="{% url 'admin_dashboard:model_detail' model.id %}"
+                class="text-decoration-none"
+              >
+                <strong>{{ model.name }}</strong>
+              </a>
+            </td>
+            <td>
+              <span class="badge bg-secondary">v{{ model.version }}</span>
+            </td>
+            <td>{{ model.architecture }}</td>
+            <td>
+              {% if model.dataset %}
+              <a
+                href="{% url 'admin_dashboard:dataset_detail' model.dataset.id %}"
+                class="text-decoration-none"
+              >
+                {{ model.dataset.name }}
+              </a>
+              {% else %}
+              <span class="text-muted">No dataset</span>
+              {% endif %}
+            </td>
+            <td>
+              <span
+                class="badge bg-{% if model.status == 'trained' %}success{% elif model.status == 'training' %}warning{% elif model.status == 'failed' %}danger{% elif model.status == 'production' %}info{% else %}secondary{% endif %}"
+              >
+                {{ model.get_status_display }}
+              </span>
+            </td>
+            <td>
+              {% if model.training_accuracy %} 
+              {{ model.training_accuracy|floatformat:1 }}% {% else %}
+              <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if model.validation_accuracy %} 
+              {{ model.validation_accuracy|floatformat:1 }}% {% else %}
+              <span class="text-muted">-</span>
+              {% endif %}
+            </td>
+            <td>{{ model.created_at|date:"M d, Y" }}</td>
+            <td>
+              <div class="btn-group btn-group-sm" role="group">
+                <a
+                  href="{% url 'admin_dashboard:model_detail' model.id %}"
+                  class="btn btn-outline-primary"
+                  title="View Details"
+                >
+                  <i class="fas fa-eye"></i>
+                </a>
+
+                {% if model.status == 'draft' or model.status == 'failed' %}
+                <a
+                  href="{% url 'admin_dashboard:configure_training' model.id %}"
+                  class="btn btn-outline-success"
+                  title="Configure Training"
+                >
+                  <i class="fas fa-cogs"></i>
+                </a>
+                <a
+                  href="{% url 'admin_dashboard:start_training' model.id %}"
+                  class="btn btn-outline-warning"
+                  title="Start Training"
+                  onclick="return confirm('Start training for {{ model.name }}?')"
+                >
+                  <i class="fas fa-play"></i>
+                </a>
+                {% elif model.status == 'training' %}
+                <a
+                  href="{% url 'admin_dashboard:stop_training' model.id %}"
+                  class="btn btn-outline-danger"
+                  title="Stop Training"
+                  onclick="return confirm('Stop training for {{ model.name }}?')"
+                >
+                  <i class="fas fa-stop"></i>
+                </a>
+                {% elif model.status == 'trained' %}
+                <a
+                  href="{% url 'admin_dashboard:deploy_model' model.id %}"
+                  class="btn btn-outline-info"
+                  title="Deploy Model"
+                  onclick="return confirm('Deploy {{ model.name }} to production?')"
+                >
+                  <i class="fas fa-rocket"></i>
+                </a>
+                {% elif model.status == 'production' %}
+                <a
+                  href="{% url 'admin_dashboard:retire_model' model.id %}"
+                  class="btn btn-outline-secondary"
+                  title="Retire Model"
+                  onclick="return confirm('Retire {{ model.name }} from production?')"
+                >
+                  <i class="fas fa-archive"></i>
+                </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Models pagination">
+      <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}"
+            >Previous</a
+          >
+        </li>
+        {% endif %} {% for num in page_obj.paginator.page_range %} 
+        {% if page_obj.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+        </li>
+        {% endif %} {% endfor %} {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}"
+            >Next</a
+          >
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %} {% else %}
+    <!-- Empty State -->
+    <div class="text-center py-5">
+      <i class="fas fa-brain fa-4x text-muted mb-3"></i>
+      <h4 class="text-muted">No Models Found</h4>
+      <p class="text-muted mb-4">
+        Get started by creating your first machine learning model.
+      </p>
+      <a
+        href="{% url 'admin_dashboard:create_model' %}"
+        class="btn btn-success"
+      >
+        <i class="fas fa-plus"></i> Create First Model
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+  <div class="col-md-4">
+    <div class="card border-primary">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-plus"></i> Create Model</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">
+          Create a new machine learning model for crop disease detection.
+        </p>
+        <a
+          href="{% url 'admin_dashboard:create_model' %}"
+          class="btn btn-primary"
+          >Create Model</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-success">
+      <div class="card-header bg-success text-white">
+        <h6 class="mb-0"><i class="fas fa-cogs"></i> Training</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">Monitor and manage model training processes.</p>
+        <a href="{% url 'admin_dashboard:training' %}" class="btn btn-success"
+          >Training Dashboard</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-info">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="fas fa-chart-bar"></i> Analytics</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">View performance metrics and analytics.</p>
+        <a href="{% url 'admin_dashboard:analytics' %}" class="btn btn-info"
+          >View Analytics</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Auto-refresh page every 30 seconds if there are training models
+  {% if training_models_count > 0 %}
+  setTimeout(function() {
+      location.reload();
+  }, 30000);
+  {% endif %}
+</script>
+{% endblock %}

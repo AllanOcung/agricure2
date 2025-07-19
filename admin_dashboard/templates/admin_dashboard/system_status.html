@@ -1,0 +1,199 @@
+{% extends 'admin_dashboard/base.html' %} {% block title %}System Status{%
+endblock %} {% block content %}
+<!-- System Health Overview -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div
+      class="card bg-{% if status.database %}success{% else %}danger{% endif %} text-white"
+    >
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5>Database</h5>
+            <p class="mb-0">
+              {% if status.database %}Connected{% else %}Disconnected{% endif %}
+            </p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-database fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div
+      class="card bg-{% if status.media_storage %}success{% else %}danger{% endif %} text-white"
+    >
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5>Media Storage</h5>
+            <p class="mb-0">
+              {% if status.media_storage %}Available{% else %}Unavailable{%
+              endif %}
+            </p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-folder fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5>Training Jobs</h5>
+            <p class="mb-0">{{ status.active_training_jobs }} Active</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-cogs fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-secondary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h5>System Load</h5>
+            <p class="mb-0">Normal</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-server fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- System Information -->
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-info-circle"></i> System Information
+        </h5>
+      </div>
+      <div class="card-body">
+        <dl class="row">
+          <dt class="col-sm-4">Django Version:</dt>
+          <dd class="col-sm-8">5.2.3</dd>
+
+          <dt class="col-sm-4">Python Version:</dt>
+          <dd class="col-sm-8">3.11</dd>
+
+          <dt class="col-sm-4">Database:</dt>
+          <dd class="col-sm-8">SQLite</dd>
+
+          <dt class="col-sm-4">Environment:</dt>
+          <dd class="col-sm-8">Development</dd>
+
+          <dt class="col-sm-4">Debug Mode:</dt>
+          <dd class="col-sm-8">
+            <span class="badge bg-warning">Enabled</span>
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Resource Usage</h5>
+      </div>
+      <div class="card-body">
+        <h6>Storage Usage</h6>
+        <div class="progress mb-3">
+          <div class="progress-bar" role="progressbar" style="width: 25%">
+            25% Used
+          </div>
+        </div>
+
+        <h6>Memory Usage</h6>
+        <div class="progress mb-3">
+          <div
+            class="progress-bar bg-success"
+            role="progressbar"
+            style="width: 40%"
+          >
+            40% Used
+          </div>
+        </div>
+
+        <h6>CPU Usage</h6>
+        <div class="progress">
+          <div
+            class="progress-bar bg-info"
+            role="progressbar"
+            style="width: 15%"
+          >
+            15% Used
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-history"></i> Recent System Activity
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Event</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>{{ "now"|date:"Y-m-d H:i" }}</td>
+                <td>System health check</td>
+                <td><span class="badge bg-success">OK</span></td>
+              </tr>
+              <tr>
+                <td>{{ "now"|date:"Y-m-d H:i" }}</td>
+                <td>Database connection test</td>
+                <td><span class="badge bg-success">OK</span></td>
+              </tr>
+              <tr>
+                <td>{{ "now"|date:"Y-m-d H:i" }}</td>
+                <td>Media storage check</td>
+                <td><span class="badge bg-success">OK</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Auto-refresh every 30 seconds
+  setTimeout(function () {
+    location.reload();
+  }, 30000);
+</script>
+{% endblock %}

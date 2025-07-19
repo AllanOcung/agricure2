@@ -1,0 +1,79 @@
+{% extends 'admin_dashboard/base.html' %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-plus"></i> Create New Dataset</h5>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label">
+              Dataset Name <span class="text-danger">*</span>
+            </label>
+            {{ form.name }} {% if form.name.errors %}
+            <div class="text-danger small">
+              {% for error in form.name.errors %} {{ error }} {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">
+              Choose a descriptive name for your dataset
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label">
+              Description
+            </label>
+            {{ form.description }} {% if form.description.errors %}
+            <div class="text-danger small">
+              {% for error in form.description.errors %} {{ error }} {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">
+              Describe the purpose and content of this dataset
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a
+              href="{% url 'admin_dashboard:datasets' %}"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-arrow-left"></i> Back to Datasets
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Create Dataset
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-info-circle"></i> Next Steps</h6>
+      </div>
+      <div class="card-body">
+        <p class="mb-2">After creating your dataset, you'll be able to:</p>
+        <ul class="list-unstyled">
+          <li>
+            <i class="fas fa-upload text-success me-2"></i> Upload training
+            images
+          </li>
+          <li>
+            <i class="fas fa-tags text-info me-2"></i> Label images as healthy
+            or diseased
+          </li>
+          <li>
+            <i class="fas fa-brain text-primary me-2"></i> Train AI models using
+            the dataset
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

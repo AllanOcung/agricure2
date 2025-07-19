@@ -1,0 +1,233 @@
+{% extends 'admin_dashboard/base.html' %} {% load static %} 
+{% block title %}{{ page_title }} - Agricure Admin{% endblock %} {% block extra_css %}
+<style>
+  .dataset-card {
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    margin-bottom: 20px;
+  }
+
+  .dataset-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 500;
+  }
+
+  .status-pending {
+    background: #fff3cd;
+    color: #856404;
+  }
+  .status-processing {
+    background: #cce7ff;
+    color: #0066cc;
+  }
+  .status-completed {
+    background: #d4edda;
+    color: #155724;
+  }
+  .status-failed {
+    background: #f8d7da;
+    color: #721c24;
+  }
+
+  .upload-area {
+    border: 2px dashed #dee2e6;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    background: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .upload-area:hover {
+    border-color: #007bff;
+    background: #e3f2fd;
+  }
+
+  .upload-area.dragover {
+    border-color: #28a745;
+    background: #e8f5e8;
+  }
+
+  .stats-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .stats-item {
+    text-align: center;
+    padding: 10px;
+  }
+
+  .stats-number {
+    font-size: 2em;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .stats-label {
+    font-size: 0.9em;
+    opacity: 0.8;
+  }
+
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+  }
+
+  .image-item {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+
+  .image-item img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .image-info {
+    padding: 10px;
+    font-size: 0.85em;
+  }
+
+  .processing-log {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    padding: 15px;
+    font-family: monospace;
+    font-size: 0.85em;
+    max-height: 300px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+
+  .filter-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="container-fluid">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fas fa-database"></i> {{ page_title }}</h2>
+    <div>{% block header_actions %} {% endblock %}</div>
+  </div>
+
+  <!-- Main Content -->
+  {% block main_content %} {% endblock %}
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Dataset management JavaScript utilities
+  function confirmDelete(datasetName) {
+    return confirm(
+      `Are you sure you want to delete "${datasetName}"? This action cannot be undone.`
+    );
+  }
+
+  function reprocessDataset(datasetId) {
+    if (confirm("Are you sure you want to reprocess this dataset?")) {
+      fetch(`/datasets/${datasetId}/reprocess/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]")
+            .value,
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.success) {
+            alert(data.message);
+            location.reload();
+          } else {
+            alert("Error: " + data.error);
+          }
+        })
+        .catch((error) => {
+          alert("Error: " + error);
+        });
+    }
+  }
+
+  // File upload drag and drop
+  function setupDragAndDrop() {
+    const uploadArea = document.getElementById("upload-area");
+    const fileInput = document.getElementById("id_zip_file");
+
+    if (uploadArea && fileInput) {
+      uploadArea.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        uploadArea.classList.add("dragover");
+      });
+
+      uploadArea.addEventListener("dragleave", function (e) {
+        e.preventDefault();
+        uploadArea.classList.remove("dragover");
+      });
+
+      uploadArea.addEventListener("drop", function (e) {
+        e.preventDefault();
+        uploadArea.classList.remove("dragover");
+
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          fileInput.files = files;
+          updateFileDisplay(files[0]);
+        }
+      });
+
+      uploadArea.addEventListener("click", function () {
+        fileInput.click();
+      });
+
+      fileInput.addEventListener("change", function () {
+        if (this.files.length > 0) {
+          updateFileDisplay(this.files[0]);
+        }
+      });
+    }
+  }
+
+  function updateFileDisplay(file) {
+    const uploadArea = document.getElementById("upload-area");
+    if (uploadArea) {
+      const fileName = file.name;
+      const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+
+      uploadArea.innerHTML = `
+            <i class="fas fa-file-archive fa-3x text-success mb-3"></i>
+            <h5>${fileName}</h5>
+            <p class="text-muted">Size: ${fileSize} MB</p>
+            <small class="text-muted">Click to change file</small>
+        `;
+    }
+  }
+
+  // Initialize on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    setupDragAndDrop();
+  });
+</script>
+{% endblock %}

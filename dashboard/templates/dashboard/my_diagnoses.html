@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'dashboard/base_dashboard.html' %}
 {% load static %}
 
 {% block title %}My Diagnoses{% endblock %}
@@ -115,7 +115,7 @@
             <a href="{% url 'dashboard:upload_image' %}" class="btn btn-primary">
                 <i class="fas fa-upload"></i> Upload New Image
             </a>
-            <a href="{% url 'dashboard:model_comparison' %}" class="btn btn-outline-info">
+            <a href="#" class="btn btn-outline-info">
                 <i class="fas fa-balance-scale"></i> Compare Models
             </a>
         </div>
@@ -270,7 +270,7 @@
                     {% endif %}
                     
                     <div class="d-grid">
-                        <a href="{% url 'dashboard:diagnosis_result' diagnosis.id %}" 
+                        <a href="#" 
                            class="btn btn-outline-primary btn-sm">
                             <i class="fas fa-eye"></i> View Details
                         </a>

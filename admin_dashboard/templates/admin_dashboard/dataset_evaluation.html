@@ -1,0 +1,417 @@
+{% extends 'admin_dashboard/base.html' %} 
+{% block title %}Dataset Evaluation - {{ dataset.name }}{% endblock %} {% block page_actions %}
+<a
+  href="{% url 'admin_dashboard:dataset_detail' dataset.id %}"
+  class="btn btn-secondary"
+>
+  <i class="fas fa-arrow-left"></i> Back to Dataset
+</a>
+<button
+  type="button"
+  class="btn btn-success"
+  onclick="window.location.reload()"
+>
+  <i class="fas fa-sync"></i> Re-evaluate
+</button>
+{% endblock %} {% block content %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-search"></i> Dataset Evaluation: {{ dataset.name }}
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h4>Overall Health Score</h4>
+            <div class="progress mb-3" style="height: 30px">
+              <div
+                class="progress-bar {% if evaluation.health_score >= 80 %}bg-success {% elif evaluation.health_score >= 60 %}bg-warning {% else %}bg-danger{% endif %}"
+                style="width: {{ evaluation.health_score }}%"
+              >
+                {{ evaluation.health_score }}%
+              </div>
+            </div>
+            <p class="text-muted">
+              {% if evaluation.health_score >= 80 %}
+              <i class="fas fa-check-circle text-success"></i> Excellent -
+              Dataset is in great condition {% elif evaluation.health_score >= 60 %}
+              <i class="fas fa-exclamation-triangle text-warning"></i> Good -
+              Minor issues detected {% else %}
+              <i class="fas fa-times-circle text-danger"></i> Poor - Significant
+              issues need attention {% endif %}
+            </p>
+          </div>
+          <div class="col-md-6">
+            <h4>Quick Stats</h4>
+            <div class="row text-center">
+              <div class="col-6">
+                <h5 class="text-primary">{{ evaluation.total_images }}</h5>
+                <small class="text-muted">Total Images</small>
+              </div>
+              <div class="col-6">
+                <h5 class="text-danger">
+                  {{ evaluation.summary.corrupted|add:evaluation.summary.missing }}
+                </h5>
+                <small class="text-muted">Critical Issues</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Issues Summary -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Issues Summary</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-2 col-sm-4 col-6 text-center">
+            <h4 class="text-danger">{{ evaluation.summary.corrupted }}</h4>
+            <small class="text-muted">Corrupted</small>
+          </div>
+          <div class="col-md-2 col-sm-4 col-6 text-center">
+            <h4 class="text-warning">{{ evaluation.summary.missing }}</h4>
+            <small class="text-muted">Missing</small>
+          </div>
+          <div class="col-md-2 col-sm-4 col-6 text-center">
+            <h4 class="text-info">{{ evaluation.summary.small }}</h4>
+            <small class="text-muted">Too Small</small>
+          </div>
+          <div class="col-md-2 col-sm-4 col-6 text-center">
+            <h4 class="text-info">{{ evaluation.summary.large }}</h4>
+            <small class="text-muted">Too Large</small>
+          </div>
+          <div class="col-md-2 col-sm-4 col-6 text-center">
+            <h4 class="text-secondary">{{ evaluation.summary.suspicious }}</h4>
+            <small class="text-muted">Suspicious</small>
+          </div>
+          <div class="col-md-2 col-sm-4 col-6 text-center">
+            <h4 class="text-primary">{{ evaluation.summary.duplicates }}</h4>
+            <small class="text-muted">Duplicates</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Critical Issues -->
+{% if evaluation.corrupted_images or evaluation.missing_files %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-danger">
+      <div class="card-header bg-danger text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-exclamation-triangle"></i> Critical Issues
+          <span class="badge bg-white text-danger ms-2">
+            {{ evaluation.corrupted_images|length|add:evaluation.missing_files|length }}
+          </span>
+        </h5>
+      </div>
+      <div class="card-body">
+        <form
+          method="post"
+          action="{% url 'admin_dashboard:remove_corrupted' dataset.id %}"
+        >
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <button
+              type="submit"
+              class="btn btn-danger"
+              onclick="return confirm('Are you sure you want to remove the selected images? This action cannot be undone.')"
+            >
+              <i class="fas fa-trash"></i> Remove Selected Critical Issues
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              onclick="selectAllCritical()"
+            >
+              <i class="fas fa-check-square"></i> Select All Critical
+            </button>
+          </div>
+
+          {% if evaluation.corrupted_images %}
+          <h6 class="text-danger">
+            <i class="fas fa-times-circle"></i> Corrupted Images ({{ evaluation.corrupted_images|length }})
+          </h6>
+          <div class="table-responsive mb-4">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      onclick="toggleAll(this, 'corrupted')"
+                    />
+                  </th>
+                  <th>Filename</th>
+                  <th>Path</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for image in evaluation.corrupted_images %}
+                <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="image_ids"
+                      value="{{ image.id }}"
+                      class="critical-checkbox corrupted-checkbox"
+                    />
+                  </td>
+                  <td>{{ image.filename }}</td>
+                  <td><code>{{ image.path|truncatechars:50 }}</code></td>
+                  <td>
+                    <span class="badge bg-danger">{{ image.reason }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %} {% if evaluation.missing_files %}
+          <h6 class="text-warning">
+            <i class="fas fa-file-times"></i> Missing Files ({{ evaluation.missing_files|length }})
+          </h6>
+          <div class="table-responsive mb-4">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>
+                    <input
+                      type="checkbox"
+                      onclick="toggleAll(this, 'missing')"
+                    />
+                  </th>
+                  <th>Filename</th>
+                  <th>Path</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for image in evaluation.missing_files %}
+                <tr>
+                  <td>
+                    <input
+                      type="checkbox"
+                      name="image_ids"
+                      value="{{ image.id }}"
+                      class="critical-checkbox missing-checkbox"
+                    />
+                  </td>
+                  <td>{{ image.filename }}</td>
+                  <td><code>{{ image.path|truncatechars:50 }}</code></td>
+                  <td>
+                    <span class="badge bg-warning">{{ image.reason }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quality Issues -->
+{% if evaluation.small_images or evaluation.large_images or evaluation.suspicious_images %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-warning">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+          <i class="fas fa-exclamation-triangle"></i> Quality Issues
+          <span class="badge bg-dark text-warning ms-2">
+            {{ evaluation.small_images|length|add:evaluation.large_images|length|add:evaluation.suspicious_images|length }}
+          </span>
+        </h5>
+      </div>
+      <div class="card-body">
+        <!-- Small Images -->
+        {% if evaluation.small_images %}
+        <div class="mb-4">
+          <h6 class="text-info">
+            <i class="fas fa-compress"></i> Small Images ({{
+            evaluation.small_images|length }})
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Dimensions</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for image in evaluation.small_images %}
+                <tr>
+                  <td>{{ image.filename }}</td>
+                  <td>{{ image.width }}x{{ image.height }}</td>
+                  <td><span class="badge bg-info">{{ image.reason }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Large Images -->
+        {% if evaluation.large_images %}
+        <div class="mb-4">
+          <h6 class="text-info">
+            <i class="fas fa-expand"></i> Large Images ({{
+            evaluation.large_images|length }})
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Dimensions</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for image in evaluation.large_images %}
+                <tr>
+                  <td>{{ image.filename }}</td>
+                  <td>{{ image.width }}x{{ image.height }}</td>
+                  <td><span class="badge bg-info">{{ image.reason }}</span></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Suspicious Images -->
+        {% if evaluation.suspicious_images %}
+        <div class="mb-4">
+          <h6 class="text-secondary">
+            <i class="fas fa-question-circle"></i> Suspicious Images ({{
+            evaluation.suspicious_images|length }})
+          </h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Filename</th>
+                  <th>Dimensions</th>
+                  <th>Aspect Ratio</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for image in evaluation.suspicious_images %}
+                <tr>
+                  <td>{{ image.filename }}</td>
+                  <td>{{ image.width }}x{{ image.height }}</td>
+                  <td>{{ image.aspect_ratio }}</td>
+                  <td>
+                    <span class="badge bg-secondary">{{ image.reason }}</span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Duplicate Images -->
+{% if evaluation.duplicate_images %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-primary">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="fas fa-copy"></i> Potential Duplicates
+          <span class="badge bg-white text-primary ms-2"
+            >{{ evaluation.duplicate_images|length }}</span
+          >
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Filename</th>
+                <th>Original Match</th>
+                <th>Reason</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for image in evaluation.duplicate_images %}
+              <tr>
+                <td>{{ image.filename }}</td>
+                <td>{{ image.original_filename }}</td>
+                <td>
+                  <span class="badge bg-primary">{{ image.reason }}</span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %} 
+{% if not evaluation.corrupted_images and not evaluation.missing_files and not evaluation.small_images and not evaluation.large_images and not evaluation.suspicious_images and not evaluation.duplicate_images %}
+<div class="row">
+  <div class="col-12">
+    <div class="card border-success">
+      <div class="card-body text-center py-5">
+        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+        <h4 class="text-success">Perfect Dataset!</h4>
+        <p class="text-muted">
+          No issues detected in your dataset. All images are healthy and ready
+          for training.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script>
+  function toggleAll(source, type) {
+    var checkboxes = document.querySelectorAll("." + type + "-checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].checked = source.checked;
+    }
+  }
+
+  function selectAllCritical() {
+    var checkboxes = document.querySelectorAll(".critical-checkbox");
+    for (var i = 0; i < checkboxes.length; i++) {
+      checkboxes[i].checked = true;
+    }
+  }
+</script>
+{% endblock %}

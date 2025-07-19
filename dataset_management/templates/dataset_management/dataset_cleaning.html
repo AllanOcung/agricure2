@@ -1,0 +1,468 @@
+{% extends 'dataset_management/base_dataset.html' %}
+{% load static %}
+
+{% block header_actions %}
+<div class="btn-group">
+    <a href="{% url 'dataset_management:dataset_detail' dataset.pk %}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Dataset
+    </a>
+    <a href="{% url 'dataset_management:dataset_validate' dataset.pk %}" class="btn btn-outline-info">
+        <i class="fas fa-check-circle"></i> Validate Dataset
+    </a>
+</div>
+{% endblock %}
+
+{% block main_content %}
+<div class="row">
+    <!-- Dataset Info and Controls -->
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="fas fa-broom"></i> Dataset Cleaning: {{ dataset.name }}</h5>
+                <div>
+                    <span class="badge bg-primary">{{ dataset.total_images }} images</span>
+                    <span class="badge bg-success">{{ dataset.total_classes }} classes</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <!-- Class Filter -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Filter by Class:</label>
+                            <select class="form-select" id="classFilter" onchange="filterByClass()">
+                                <option value="">All Classes</option>
+                                {% for class_obj in classes %}
+                                <option value="{{ class_obj.class_name }}" {% if selected_class == class_obj.class_name %}selected{% endif %}>
+                                    {{ class_obj.class_name }} ({{ class_obj.image_count }} images)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Bulk Actions -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Bulk Actions:</label>
+                            <div class="btn-group w-100">
+                                <button class="btn btn-outline-warning" onclick="selectAll()">
+                                    <i class="fas fa-check-square"></i> Select All
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="clearSelection()">
+                                    <i class="fas fa-square"></i> Clear
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteSelected()" disabled id="deleteSelectedBtn">
+                                    <i class="fas fa-trash"></i> Delete Selected
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Class Management -->
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6><i class="fas fa-tags"></i> Class Management</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for class_obj in classes %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card border">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="card-title">{{ class_obj.class_name }}</h6>
+                                        <p class="card-text">
+                                            <strong>{{ class_obj.image_count }}</strong> images
+                                        </p>
+                                    </div>
+                                    <div class="dropdown">
+                                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                            <i class="fas fa-cog"></i>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item" href="#" onclick="showRenameModal('{{ class_obj.class_name }}')">
+                                                    <i class="fas fa-edit"></i> Rename Class
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" href="?class={{ class_obj.class_name }}">
+                                                    <i class="fas fa-eye"></i> View Images
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Images Grid -->
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6>
+                    <i class="fas fa-images"></i> 
+                    {% if selected_class %}
+                        Images in "{{ selected_class }}" class
+                    {% else %}
+                        All Images
+                    {% endif %}
+                </h6>
+                <div>
+                    <span id="selectedCount">0</span> selected
+                </div>
+            </div>
+            <div class="card-body">
+                {% if page_obj %}
+                <div class="image-cleaning-grid">
+                    {% for image in page_obj %}
+                    <div class="image-cleaning-item" data-image-id="{{ image.id }}">
+                        <div class="image-container">
+                            <input type="checkbox" class="image-checkbox" value="{{ image.id }}" onchange="updateSelection()">
+                            <img src="{{ image.image.url }}" alt="{{ image.original_filename }}" loading="lazy">
+                            <div class="image-overlay">
+                                <button class="btn btn-sm btn-danger" onclick="deleteImage({{ image.id }}, '{{ image.original_filename|escapejs }}')" title="Delete Image">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="image-info">
+                            <div class="fw-bold">{{ image.class_name }}</div>
+                            <div class="text-muted small" title="{{ image.original_filename }}">
+                                {{ image.original_filename|truncatechars:20 }}
+                            </div>
+                            <div class="text-muted small">
+                                {{ image.image_width }}x{{ image.image_height }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Images pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_class %}&class={{ selected_class }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if selected_class %}&class={{ selected_class }}{% endif %}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_class %}&class={{ selected_class }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No images found.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rename Class Modal -->
+<div class="modal fade" id="renameModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Rename Class
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="renameForm">
+                    <div class="mb-3">
+                        <label class="form-label">Current Name:</label>
+                        <input type="text" class="form-control" id="currentName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Name:</label>
+                        <input type="text" class="form-control" id="newName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="renameClass()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .image-cleaning-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1rem;
+    }
+    
+    .image-cleaning-item {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .image-cleaning-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .image-container {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+    }
+    
+    .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .image-checkbox {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        z-index: 2;
+        transform: scale(1.2);
+    }
+    
+    .image-overlay {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .image-cleaning-item:hover .image-overlay {
+        opacity: 1;
+    }
+    
+    .image-info {
+        padding: 0.75rem;
+        background: white;
+    }
+    
+    .image-cleaning-item.selected {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.25);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    let selectedImages = new Set();
+    
+    function filterByClass() {
+        const select = document.getElementById('classFilter');
+        const className = select.value;
+        const url = new URL(window.location);
+        
+        if (className) {
+            url.searchParams.set('class', className);
+        } else {
+            url.searchParams.delete('class');
+        }
+        url.searchParams.delete('page'); // Reset to first page
+        
+        window.location.href = url.toString();
+    }
+    
+    function updateSelection() {
+        const checkboxes = document.querySelectorAll('.image-checkbox:checked');
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const countSpan = document.getElementById('selectedCount');
+        
+        selectedImages.clear();
+        checkboxes.forEach(cb => {
+            selectedImages.add(cb.value);
+            cb.closest('.image-cleaning-item').classList.add('selected');
+        });
+        
+        // Remove selected class from unchecked items
+        document.querySelectorAll('.image-checkbox:not(:checked)').forEach(cb => {
+            cb.closest('.image-cleaning-item').classList.remove('selected');
+        });
+        
+        countSpan.textContent = selectedImages.size;
+        deleteBtn.disabled = selectedImages.size === 0;
+    }
+    
+    function selectAll() {
+        document.querySelectorAll('.image-checkbox').forEach(cb => {
+            cb.checked = true;
+        });
+        updateSelection();
+    }
+    
+    function clearSelection() {
+        document.querySelectorAll('.image-checkbox').forEach(cb => {
+            cb.checked = false;
+        });
+        updateSelection();
+    }
+    
+    function deleteSelected() {
+        if (selectedImages.size === 0) return;
+        
+        if (confirm(`Are you sure you want to delete ${selectedImages.size} selected images? This action cannot be undone.`)) {
+            const imageIds = Array.from(selectedImages);
+            deleteMultipleImages(imageIds);
+        }
+    }
+    
+    function deleteImage(imageId, filename) {
+        if (confirm(`Are you sure you want to delete "${filename}"? This action cannot be undone.`)) {
+            deleteMultipleImages([imageId]);
+        }
+    }
+    
+    function deleteMultipleImages(imageIds) {
+        // Show loading state
+        const deleteBtn = document.getElementById('deleteSelectedBtn');
+        const originalText = deleteBtn.innerHTML;
+        deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        deleteBtn.disabled = true;
+        
+        // Delete images one by one
+        let deletedCount = 0;
+        const totalCount = imageIds.length;
+        
+        imageIds.forEach(imageId => {
+            fetch(`{% url 'dataset_management:delete_image' dataset.pk %}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `image_id=${imageId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                deletedCount++;
+                
+                if (data.success) {
+                    // Remove image from DOM
+                    const imageItem = document.querySelector(`[data-image-id="${imageId}"]`);
+                    if (imageItem) {
+                        imageItem.remove();
+                    }
+                    selectedImages.delete(imageId.toString());
+                } else {
+                    console.error('Failed to delete image:', data.error);
+                }
+                
+                // Update UI when all deletions are complete
+                if (deletedCount === totalCount) {
+                    updateSelection();
+                    deleteBtn.innerHTML = originalText;
+                    deleteBtn.disabled = selectedImages.size === 0;
+                    
+                    // Refresh page if no images left
+                    if (document.querySelectorAll('.image-cleaning-item').length === 0) {
+                        window.location.reload();
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                deletedCount++;
+                
+                if (deletedCount === totalCount) {
+                    deleteBtn.innerHTML = originalText;
+                    deleteBtn.disabled = false;
+                }
+            });
+        });
+    }
+    
+    function showRenameModal(className) {
+        document.getElementById('currentName').value = className;
+        document.getElementById('newName').value = '';
+        new bootstrap.Modal(document.getElementById('renameModal')).show();
+    }
+    
+    function renameClass() {
+        const oldName = document.getElementById('currentName').value;
+        const newName = document.getElementById('newName').value.trim();
+        
+        if (!newName) {
+            alert('Please enter a new name for the class.');
+            return;
+        }
+        
+        fetch(`{% url 'dataset_management:rename_class' dataset.pk %}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: `old_name=${encodeURIComponent(oldName)}&new_name=${encodeURIComponent(newName)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error renaming class: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while renaming the class.');
+        });
+    }
+    
+    // Initialize selection tracking
+    document.addEventListener('DOMContentLoaded', function() {
+        updateSelection();
+    });
+</script>
+{% endblock %}

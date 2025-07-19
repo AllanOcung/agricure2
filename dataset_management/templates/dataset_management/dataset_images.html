@@ -1,0 +1,244 @@
+{% extends 'dataset_management/base_dataset.html' %} 
+{% load static %} {% block header_actions %}
+<div class="btn-group">
+  <a
+    href="{% url 'dataset_management:dataset_detail' dataset.pk %}"
+    class="btn btn-outline-secondary"
+  >
+    <i class="fas fa-arrow-left"></i> Back to Dataset
+  </a>
+  <div class="dropdown">
+    <button
+      class="btn btn-outline-info dropdown-toggle"
+      type="button"
+      data-bs-toggle="dropdown"
+    >
+      <i class="fas fa-filter"></i> Filter by Class
+    </button>
+    <ul class="dropdown-menu">
+      <li>
+        <a
+          class="dropdown-item"
+          href="{% url 'dataset_management:dataset_images' dataset.pk %}"
+          >All Classes</a
+        >
+      </li>
+      {% for class_obj in classes %}
+      <li>
+        <a class="dropdown-item" href="?class={{ class_obj.class_name }}"
+          >{{ class_obj.class_name }} ({{ class_obj.image_count }})</a
+        >
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %} {% block main_content %}
+<!-- Dataset Info Header -->
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h5 class="mb-1">{{ dataset.name }}</h5>
+        <p class="text-muted mb-0">
+          {% if current_class %} Showing images from class:
+          <strong>{{ current_class }}</strong>
+          {% else %} Showing all images {% endif %}
+        </p>
+      </div>
+      <div class="col-md-4 text-end">
+        <div class="d-flex justify-content-end align-items-center">
+          <div class="me-3">
+            <small class="text-muted">Total:</small><br />
+            <strong>{{ images.paginator.count }}</strong> images
+          </div>
+          {% if current_class %}
+          <a
+            href="{% url 'dataset_management:dataset_images' dataset.pk %}"
+            class="btn btn-sm btn-outline-secondary"
+          >
+            <i class="fas fa-times"></i> Clear Filter
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Images Grid -->
+<div class="image-grid">
+  {% for image in images %}
+  <div
+    class="image-item"
+    data-bs-toggle="modal"
+    data-bs-target="#imageModal"
+    data-image-url="{{ image.image.url }}"
+    data-image-title="{{ image.original_filename }}"
+    data-image-class="{{ image.class_name }}"
+    data-image-size="{{ image.image_width }}x{{ image.image_height }}"
+    data-image-filesize="{{ image.file_size|filesizeformat }}"
+  >
+    <img
+      src="{{ image.image.url }}"
+      alt="{{ image.original_filename }}"
+      loading="lazy"
+    />
+    <div class="image-info">
+      <div class="fw-bold">{{ image.class_name }}</div>
+      <div class="text-muted small">
+        {{ image.original_filename|truncatechars:25 }}
+      </div>
+      <div class="text-muted small">
+        {{ image.image_width }}x{{ image.image_height }}
+      </div>
+      <div class="text-muted small">{{ image.file_size|filesizeformat }}</div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12">
+    <div class="text-center py-5">
+      <i class="fas fa-images fa-3x text-muted mb-3"></i>
+      <h4>No images found</h4>
+      {% if current_class %}
+      <p class="text-muted">No images found for class "{{ current_class }}".</p>
+      <a
+        href="{% url 'dataset_management:dataset_images' dataset.pk %}"
+        class="btn btn-primary"
+      >
+        View All Images
+      </a>
+      {% else %}
+      <p class="text-muted">
+        This dataset doesn't contain any processed images.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if images.has_other_pages %}
+<div class="row mt-4">
+  <div class="col-12">
+    <nav aria-label="Images pagination">
+      <ul class="pagination justify-content-center">
+        {% if images.has_previous %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ images.previous_page_number }}{% if current_class %}&class={{ current_class }}{% endif %}"
+          >
+            <i class="fas fa-chevron-left"></i>
+          </a>
+        </li>
+        {% endif %} {% for num in images.paginator.page_range %} {% if images.number == num %}
+        <li class="page-item active">
+          <span class="page-link">{{ num }}</span>
+        </li>
+        {% elif num > images.number|add:'-3' and num < images.number|add:'3' %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ num }}{% if current_class %}&class={{ current_class }}{% endif %}"
+            >{{ num }}</a
+          >
+        </li>
+        {% endif %} {% endfor %} {% if images.has_next %}
+        <li class="page-item">
+          <a
+            class="page-link"
+            href="?page={{ images.next_page_number }}{% if current_class %}&class={{ current_class }}{% endif %}"
+          >
+            <i class="fas fa-chevron-right"></i>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+  </div>
+</div>
+{% endif %}
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="imageModalTitle">Image Details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body text-center">
+        <img
+          id="modalImage"
+          src=""
+          alt=""
+          class="img-fluid rounded mb-3"
+          style="max-height: 500px"
+        />
+        <div id="imageDetails" class="row">
+          <div class="col-md-6">
+            <strong>Class:</strong> <span id="imageClass"></span>
+          </div>
+          <div class="col-md-6">
+            <strong>Dimensions:</strong> <span id="imageSize"></span>
+          </div>
+          <div class="col-md-6">
+            <strong>File Size:</strong> <span id="imageFilesize"></span>
+          </div>
+          <div class="col-md-6">
+            <strong>Filename:</strong> <span id="imageFilename"></span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <a id="downloadLink" href="" download class="btn btn-primary">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %} {{ block.super }}
+<script>
+  // Handle image modal
+  document
+    .getElementById("imageModal")
+    .addEventListener("show.bs.modal", function (event) {
+      const button = event.relatedTarget;
+      const imageUrl = button.getAttribute("data-image-url");
+      const imageTitle = button.getAttribute("data-image-title");
+      const imageClass = button.getAttribute("data-image-class");
+      const imageSize = button.getAttribute("data-image-size");
+      const imageFilesize = button.getAttribute("data-image-filesize");
+
+      document.getElementById("modalImage").src = imageUrl;
+      document.getElementById("imageModalTitle").textContent = imageTitle;
+      document.getElementById("imageClass").textContent = imageClass;
+      document.getElementById("imageSize").textContent = imageSize;
+      document.getElementById("imageFilesize").textContent = imageFilesize;
+      document.getElementById("imageFilename").textContent = imageTitle;
+      document.getElementById("downloadLink").href = imageUrl;
+    });
+
+  // Add hover effect to images
+  document.querySelectorAll(".image-item").forEach((item) => {
+    item.style.cursor = "pointer";
+    item.addEventListener("mouseenter", function () {
+      this.style.transform = "scale(1.05)";
+      this.style.transition = "transform 0.2s ease";
+    });
+    item.addEventListener("mouseleave", function () {
+      this.style.transform = "scale(1)";
+    });
+  });
+</script>
+{% endblock %}

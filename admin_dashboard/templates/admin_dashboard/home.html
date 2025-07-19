@@ -1,0 +1,274 @@
+{% extends 'admin_dashboard/base.html' %} {% block content %}
+<div class="row">
+  <!-- Summary Cards -->
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-primary shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div
+              class="text-xs font-weight-bold text-primary text-uppercase mb-1"
+            >
+              Active Datasets
+            </div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">
+              {{ total_datasets }}
+            </div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-database fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-success shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div
+              class="text-xs font-weight-bold text-success text-uppercase mb-1"
+            >
+              Completed Datasets
+            </div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">
+              {{ completed_datasets }}
+            </div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-info shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+              Total Images
+            </div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">
+              {{ total_images }}
+            </div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-images fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-xl-3 col-md-6 mb-4">
+    <div class="card border-left-warning shadow h-100 py-2">
+      <div class="card-body">
+        <div class="row no-gutters align-items-center">
+          <div class="col mr-2">
+            <div
+              class="text-xs font-weight-bold text-warning text-uppercase mb-1"
+            >
+              Total Classes
+            </div>
+            <div class="h5 mb-0 font-weight-bold text-gray-800">
+              {{ total_classes }}
+            </div>
+          </div>
+          <div class="col-auto">
+            <i class="fas fa-tags fa-2x text-gray-300"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Recent Models -->
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow mb-4">
+      <div
+        class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
+      >
+        <h6 class="m-0 font-weight-bold text-primary">Recent Models</h6>
+        <a href="" class="btn btn-primary btn-sm">View All</a>
+      </div>
+      <div class="card-body">
+        {% if recent_models %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Status</th>
+                <th>Accuracy</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for model in recent_models %}
+              <tr>
+                <td>
+                  <a href=""> {{ model.name }} v{{ model.version }} </a>
+                </td>
+                <td>
+                  <span
+                    class="badge bg-{% if model.status == 'production' %}success{% elif model.status == 'training' %}info{% elif model.status == 'failed' %}danger{% else %}secondary{% endif %}"
+                  >
+                    {{ model.get_status_display }}
+                  </span>
+                </td>
+                <td>
+                  {% if model.validation_accuracy %} {{
+                  model.validation_accuracy|floatformat:3 }} {% else %} - {%
+                  endif %}
+                </td>
+                <td>{{ model.training_started_at|date:"M d" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No models found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Datasets -->
+  <div class="col-lg-6 mb-4">
+    <div class="card shadow mb-4">
+      <div
+        class="card-header py-3 d-flex flex-row align-items-center justify-content-between"
+      >
+        <h6 class="m-0 font-weight-bold text-primary">Recent Datasets</h6>
+        <a
+          href="{% url 'dataset_management:dataset_list' %}"
+          class="btn btn-primary btn-sm"
+          >View All</a
+        >
+      </div>
+      <div class="card-body">
+        {% if recent_datasets %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Images</th>
+                <th>Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for dataset in recent_datasets %}
+              <tr>
+                <td>
+                  <a
+                    href="{% url 'dataset_management:dataset_detail' dataset.pk %}"
+                  >
+                    {{ dataset.name }}
+                  </a>
+                </td>
+                <td>{{ dataset.total_images }}</td>
+                <td>{{ dataset.created_at|date:"M d" }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <p class="text-muted">No datasets found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Training Jobs Status -->
+{% if training_jobs %}
+<div class="row">
+  <div class="col-lg-12 mb-4">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Active Training Jobs</h6>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Task ID</th>
+                <th>Model ID</th>
+                <th>Started</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for task_id, job in training_jobs.items %}
+              <tr>
+                <td><code>{{ task_id|truncatechars:12 }}</code></td>
+                <td>{{ job.model_id }}</td>
+                <td>{{ job.started_at|date:"M d, H:i" }}</td>
+                <td>
+                  <span class="badge bg-info">
+                    {% if job.is_alive %}Running{% else %}Completed{% endif %}
+                  </span>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Quick Actions -->
+<div class="row">
+  <div class="col-lg-12">
+    <div class="card shadow mb-4">
+      <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-3 mb-3">
+            <a
+              href="{% url 'dataset_management:dataset_upload' %}"
+              class="btn btn-outline-primary btn-block"
+            >
+              <i class="fas fa-plus"></i> Upload Dataset
+            </a>
+          </div>
+          <div class="col-md-3 mb-3">
+            <a
+              href="{% url 'dataset_management:dataset_list' %}"
+              class="btn btn-outline-success btn-block"
+            >
+              <i class="fas fa-database"></i> Manage Datasets
+            </a>
+          </div>
+          <div class="col-md-3 mb-3">
+            <a href="" class="btn btn-outline-info btn-block">
+              <i class="fas fa-cogs"></i> Training Dashboard
+            </a>
+          </div>
+          <div class="col-md-3 mb-3">
+            <a href="" class="btn btn-outline-warning btn-block">
+              <i class="fas fa-chart-bar"></i> View Analytics
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

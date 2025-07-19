@@ -1,0 +1,432 @@
+{% extends 'dataset_management/base_dataset.html' %} {% load static %} {% block
+header_actions %}
+<div class="btn-group">
+  <a
+    href="{% url 'dataset_management:dataset_list' %}"
+    class="btn btn-outline-secondary"
+  >
+    <i class="fas fa-arrow-left"></i> Back to List
+  </a>
+  {% if dataset.status == 'completed' %}
+  <a
+    href="{% url 'dataset_management:dataset_images' dataset.pk %}"
+    class="btn btn-outline-info"
+  >
+    <i class="fas fa-images"></i> View Images
+  </a>
+  {% endif %} {% if dataset.status == 'failed' or dataset.status == 'pending' %}
+  <button
+    onclick="reprocessDataset('{{ dataset.pk }}')"
+    class="btn btn-outline-warning"
+  >
+    <i class="fas fa-redo"></i> Reprocess
+  </button>
+  {% endif %}
+</div>
+{% endblock %} {% block main_content %}
+<div class="row">
+  <!-- Dataset Information -->
+  <div class="col-md-8">
+    <div class="card">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5><i class="fas fa-database"></i> {{ dataset.name }}</h5>
+        <span class="status-badge status-{{ dataset.status }}">
+          {{ dataset.get_status_display }}
+        </span>
+      </div>
+      <div class="card-body">
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Type:</strong></div>
+          <div class="col-sm-9">{{ dataset.get_dataset_type_display }}</div>
+        </div>
+
+        {% if dataset.description %}
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Description:</strong></div>
+          <div class="col-sm-9">{{ dataset.description }}</div>
+        </div>
+        {% endif %}
+
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>File Size:</strong></div>
+          <div class="col-sm-9">{{ dataset.file_size_mb }} MB</div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Uploaded By:</strong></div>
+          <div class="col-sm-9">{{ dataset.uploaded_by.username }}</div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Created:</strong></div>
+          <div class="col-sm-9">{{ dataset.created_at|date:"M d, Y H:i" }}</div>
+        </div>
+
+        {% if dataset.processed_at %}
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Processed:</strong></div>
+          <div class="col-sm-9">
+            {{ dataset.processed_at|date:"M d, Y H:i" }}
+          </div>
+        </div>
+        {% endif %} {% if dataset.status == 'completed' %}
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Total Images:</strong></div>
+          <div class="col-sm-9">{{ dataset.total_images }}</div>
+        </div>
+
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Total Classes:</strong></div>
+          <div class="col-sm-9">{{ dataset.total_classes }}</div>
+        </div>
+        {% endif %} {% if dataset.error_message %}
+        <div class="row mb-3">
+          <div class="col-sm-3"><strong>Error:</strong></div>
+          <div class="col-sm-9">
+            <div class="alert alert-danger">{{ dataset.error_message }}</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Dataset Classes -->
+    {% if classes %}
+    <div class="card mt-3">
+      <div class="card-header">
+        <h6><i class="fas fa-tags"></i> Dataset Classes</h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          {% for class_obj in classes %}
+          <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card border">
+              <div class="card-body text-center">
+                <h6 class="card-title">{{ class_obj.class_name }}</h6>
+                <p class="card-text">
+                  <strong>{{ class_obj.image_count }}</strong> images
+                </p>
+                {% if class_obj.description %}
+                <small class="text-muted"
+                  >{{ class_obj.description|truncatechars:50 }}</small
+                >
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Sample Images -->
+    {% if images %}
+    <div class="card mt-3">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h6><i class="fas fa-images"></i> Sample Images</h6>
+        <a
+          href="{% url 'dataset_management:dataset_images' dataset.pk %}"
+          class="btn btn-sm btn-outline-primary"
+        >
+          View All Images
+        </a>
+      </div>
+      <div class="card-body">
+        <div class="image-grid">
+          {% for image in images %}
+          <div class="image-item">
+            <img
+              src="{{ image.image.url }}"
+              alt="{{ image.original_filename }}"
+              loading="lazy"
+            />
+            <div class="image-info">
+              <div class="fw-bold">{{ image.class_name }}</div>
+              <div class="text-muted small">
+                {{ image.original_filename|truncatechars:20 }}
+              </div>
+              <div class="text-muted small">
+                {{ image.image_width }}x{{ image.image_height }}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Statistics and Actions -->
+  <div class="col-md-4">
+    <!-- Statistics -->
+    {% if dataset.status == 'completed' %}
+    <div class="card">
+      <div class="card-header">
+        <h6><i class="fas fa-chart-bar"></i> Statistics</h6>
+      </div>
+      <div class="card-body">
+        <div class="stats-item border-bottom pb-2 mb-2">
+          <div class="stats-number text-primary">{{ stats.total_images }}</div>
+          <div class="stats-label">Total Images</div>
+        </div>
+        <div class="stats-item border-bottom pb-2 mb-2">
+          <div class="stats-number text-success">{{ stats.total_classes }}</div>
+          <div class="stats-label">Classes</div>
+        </div>
+        <div class="stats-item border-bottom pb-2 mb-2">
+          <div class="stats-number text-info">{{ stats.file_size_mb }} MB</div>
+          <div class="stats-label">File Size</div>
+        </div>
+        <div class="stats-item">
+          <div class="stats-number text-warning">
+            {{ stats.avg_images_per_class }}
+          </div>
+          <div class="stats-label">Avg Images/Class</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div class="card mt-3">
+      <div class="card-header">
+        <h6><i class="fas fa-cogs"></i> Actions</h6>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          {% if dataset.status == 'completed' %}
+          <a
+            href="{% url 'dataset_management:dataset_images' dataset.pk %}"
+            class="btn btn-outline-info"
+          >
+            <i class="fas fa-images"></i> Browse Images
+          </a>
+          <a
+            href="{% url 'dataset_management:dataset_validate' dataset.pk %}"
+            class="btn btn-outline-warning"
+          >
+            <i class="fas fa-check-circle"></i> Validate Dataset
+          </a>
+          <a
+            href="{% url 'dataset_management:dataset_cleaning' dataset.pk %}"
+            class="btn btn-outline-secondary"
+          >
+            <i class="fas fa-broom"></i> Clean Dataset
+          </a>
+          <button
+            class="btn btn-outline-success"
+            onclick="showTrainingInfo('{{ dataset.pk }}')"
+            data-bs-toggle="modal"
+            data-bs-target="#trainingModal"
+          >
+            <i class="fas fa-robot"></i> Training Information
+          </button>
+          {% endif %} {% if dataset.status == 'failed' or dataset.status ==
+          'pending' %}
+          <button
+            onclick="reprocessDataset('{{ dataset.pk }}')"
+            class="btn btn-outline-warning"
+          >
+            <i class="fas fa-redo"></i> Reprocess Dataset
+          </button>
+          {% endif %}
+
+          <form
+            method="post"
+            action="{% url 'dataset_management:dataset_delete' dataset.pk %}"
+            onsubmit="return confirmDelete('{{ dataset.name }}')"
+          >
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger w-100">
+              <i class="fas fa-trash"></i> Delete Dataset
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Processing Log -->
+    {% if dataset.processing_log %}
+    <div class="card mt-3">
+      <div class="card-header">
+        <h6><i class="fas fa-file-alt"></i> Processing Log</h6>
+      </div>
+      <div class="card-body">
+        <div class="processing-log">{{ dataset.processing_log }}</div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Training Information Modal -->
+<div class="modal fade" id="trainingModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-robot"></i> Training Information: {{ dataset.name }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div id="trainingInfoContent">
+          <div class="text-center">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading training information...</p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %} {{ block.super }}
+<script>
+  function showTrainingInfo(datasetId) {
+    fetch(`/datasets/${datasetId}/training-info/`)
+      .then((response) => response.json())
+      .then((data) => {
+        const content = document.getElementById("trainingInfoContent");
+
+        if (data.success) {
+          content.innerHTML = `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-folder"></i> Dataset Structure</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <strong>Organized Path:</strong><br>
+                                        <code>${data.dataset_path}</code>
+                                    </div>
+                                    <div class="mb-3">
+                                        <strong>Total Images:</strong> ${
+                                          data.total_images
+                                        }<br>
+                                        <strong>Total Classes:</strong> ${
+                                          data.total_classes
+                                        }
+                                    </div>
+                                    <h6>Class Distribution:</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm">
+                                            <thead>
+                                                <tr>
+                                                    <th>Class</th>
+                                                    <th>Images</th>
+                                                    <th>Path</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${Object.entries(data.classes)
+                                                  .map(
+                                                    ([
+                                                      className,
+                                                      classInfo,
+                                                    ]) => `
+                                                    <tr>
+                                                        <td><strong>${className}</strong></td>
+                                                        <td>${classInfo.image_count}</td>
+                                                        <td><small>${classInfo.path}</small></td>
+                                                    </tr>
+                                                `
+                                                  )
+                                                  .join("")}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6><i class="fas fa-code"></i> Usage Examples</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="nav nav-tabs" id="codeTab" role="tablist">
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link active" id="keras-tab" data-bs-toggle="tab" data-bs-target="#keras" type="button" role="tab">
+                                                Keras/TensorFlow
+                                            </button>
+                                        </li>
+                                        <li class="nav-item" role="presentation">
+                                            <button class="nav-link" id="pytorch-tab" data-bs-toggle="tab" data-bs-target="#pytorch" type="button" role="tab">
+                                                PyTorch
+                                            </button>
+                                        </li>
+                                    </ul>
+                                    <div class="tab-content" id="codeTabContent">
+                                        <div class="tab-pane fade show active" id="keras" role="tabpanel">
+                                            <pre><code class="language-python">${
+                                              data.keras_example.code
+                                            }</code></pre>
+                                        </div>
+                                        <div class="tab-pane fade" id="pytorch" role="tabpanel">
+                                            <pre><code class="language-python">${
+                                              data.keras_example.pytorch_code
+                                            }</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <h6><i class="fas fa-info-circle"></i> Ready for Training!</h6>
+                                <p class="mb-0">
+                                    This dataset is organized in the standard directory structure used by Keras 
+                                    <code>ImageDataGenerator.flow_from_directory()</code> and PyTorch 
+                                    <code>ImageFolder</code>. You can use the path above directly in your training scripts.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        } else {
+          content.innerHTML = `
+                    <div class="alert alert-warning">
+                        <h6><i class="fas fa-exclamation-triangle"></i> Not Ready for Training</h6>
+                        <p><strong>Error:</strong> ${data.error}</p>
+                        <ul>
+                            <li>Status: ${data.status}</li>
+                            <li>Images: ${data.total_images}</li>
+                            <li>Classes: ${data.total_classes}</li>
+                        </ul>
+                        <p class="mb-0">Please ensure the dataset is completed and contains at least 2 classes with images.</p>
+                    </div>
+                `;
+        }
+      })
+      .catch((error) => {
+        document.getElementById("trainingInfoContent").innerHTML = `
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-exclamation-circle"></i> Error</h6>
+                    <p>Failed to load training information: ${error}</p>
+                </div>
+            `;
+      });
+  }
+</script>
+{% endblock %}

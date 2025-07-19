@@ -1,0 +1,176 @@
+{% extends 'admin_dashboard/base.html' %} 
+{% block title %}Analytics Dashboard{% endblock %} {% block content %}
+<!-- Analytics Statistics -->
+<div class="row mb-4">
+  <div class="col-md-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ stats.total_predictions }}</h4>
+            <p class="mb-0">Total Predictions</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-search fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-success text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ stats.total_datasets }}</h4>
+            <p class="mb-0">Datasets</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-database fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-info text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ stats.total_models }}</h4>
+            <p class="mb-0">AI Models</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-brain fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3">
+    <div class="card bg-warning text-white">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div>
+            <h4>{{ stats.active_users }}</h4>
+            <p class="mb-0">Active Users</p>
+          </div>
+          <div class="align-self-center">
+            <i class="fas fa-users fa-2x"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Prediction Trends Chart -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-line"></i> Prediction Trends (Last 30 Days)
+        </h5>
+      </div>
+      <div class="card-body">
+        <canvas id="predictionChart" width="400" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+  <div class="col-md-4">
+    <div class="card border-primary">
+      <div class="card-header bg-primary text-white">
+        <h6 class="mb-0"><i class="fas fa-database"></i> Data Management</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">Manage datasets and upload training images.</p>
+        <a href="{% url 'admin_dashboard:datasets' %}" class="btn btn-primary"
+          >View Datasets</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-success">
+      <div class="card-header bg-success text-white">
+        <h6 class="mb-0"><i class="fas fa-brain"></i> Model Development</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">Create and train machine learning models.</p>
+        <a href="{% url 'admin_dashboard:models' %}" class="btn btn-success"
+          >View Models</a
+        >
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-4">
+    <div class="card border-info">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0"><i class="fas fa-cogs"></i> Training Monitor</h6>
+      </div>
+      <div class="card-body">
+        <p class="card-text">Monitor active training processes.</p>
+        <a href="{% url 'admin_dashboard:training' %}" class="btn btn-info"
+          >View Training</a
+        >
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %} {% block extra_js %}
+<script>
+  // Prediction trends chart
+  const ctx = document.getElementById('predictionChart').getContext('2d');
+  const predictionChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: [
+              {% for prediction in daily_predictions %}
+                  '{{ prediction.created_at__date|date:"M d" }}'{% if not forloop.last %},{% endif %}
+              {% endfor %}
+          ],
+          datasets: [{
+              label: 'Daily Predictions',
+              data: [
+                  {% for prediction in daily_predictions %}
+                      {{ prediction.count }}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+              ],
+              borderColor: 'rgb(75, 192, 192)',
+              backgroundColor: 'rgba(75, 192, 192, 0.2)',
+              tension: 0.1
+          }]
+      },
+      options: {
+          responsive: true,
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  title: {
+                      display: true,
+                      text: 'Number of Predictions'
+                  }
+              },
+              x: {
+                  title: {
+                      display: true,
+                      text: 'Date'
+                  }
+              }
+          }
+      }
+  });
+</script>
+{% endblock %}

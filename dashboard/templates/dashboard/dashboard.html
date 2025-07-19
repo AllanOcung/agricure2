@@ -1,14 +1,8 @@
-{% extends 'dashboard/base_dashboard.html' %}
-{% load static %}
-
-{% block title %}Welcome back, {{ user.first_name|default:user.email }} - Agricure{% endblock %}
-
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'dashboard/css/dashboard_main.css' %}">
+{% extends 'dashboard/base_dashboard.html' %} {% load static %} 
+{% block title %}Welcome back, {{ user.first_name|default:user.email }} - Agricure{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'dashboard/css/dashboard_main.css' %}" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{% endblock %}
-
-{% block content %}
+{% endblock %} {% block content %}
 <div class="dashboard-container">
   <!-- Hero Section with Stats -->
   <div class="hero-section">
@@ -17,7 +11,7 @@
         <div class="hero-text">
           <h2>Ready to monitor your crops today?</h2>
         </div>
-        
+
         <div class="hero-stats">
           <div class="stat-card">
             <div class="stat-content">
@@ -25,14 +19,14 @@
               <p class="stat-label">Diagnoses This Month</p>
             </div>
           </div>
-          
+
           <div class="stat-card">
             <div class="stat-content">
               <p class="stat-number">12</p>
               <p class="stat-label">Diseases Detected</p>
             </div>
           </div>
-          
+
           <div class="stat-card">
             <div class="stat-content">
               <p class="stat-number">Powdery Mildew</p>
@@ -40,6 +34,17 @@
             </div>
           </div>
         </div>
+
+        <!-- Quick Access Button -->
+        <!-- <div class="quick-access mt-4">
+          <a
+            href="{% url 'dashboard:upload_image' %}"
+            class="btn btn-primary btn-lg"
+          >
+            <i class="fas fa-camera"></i>
+            Upload Image for Analysis
+          </a>
+        </div> -->
       </div>
     </div>
   </div>
@@ -60,7 +65,7 @@
               <canvas id="sensorTrendsChart"></canvas>
             </div>
           </div>
-          
+
           <div class="chart-section">
             <h4 class="chart-title">Disease Frequency Over Time</h4>
             <div class="chart-container">
@@ -129,8 +134,8 @@
 
           <div class="device-summary1">
             <div class="devices-summary">
-            <p>3 devices connected</p>
-          </div>
+              <p>3 devices connected</p>
+            </div>
           </div>
         </div>
       </div>
@@ -266,9 +271,6 @@
   </div>
 </div>
 
-{% endblock %}
-
-{% block extra_js %}
+{% endblock %} {% block extra_js %}
 <script src="{% static 'dashboard/js/dashboard_charts.js' %}"></script>
 {% endblock %}
-      

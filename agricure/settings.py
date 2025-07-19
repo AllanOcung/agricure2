@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'core',
     'accounts',
     'dashboard',
-    
+    'admin_dashboard',
+    'dataset_management',
  
 ]
 
@@ -129,6 +130,8 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'core/static'),
     os.path.join(BASE_DIR, 'accounts/static'),
     os.path.join(BASE_DIR, 'dashboard/static'),
+    os.path.join(BASE_DIR, 'ml_core/static'),
+    os.path.join(BASE_DIR, 'admin_dashboard/static'),
 ]
 
 # Default primary key field type
@@ -191,7 +194,12 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
-        'ai_models': {
+        'ml_core': {
+            'handlers': ['file', 'console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'admin_dashboard': {
             'handlers': ['file', 'console'],
             'level': 'INFO',
             'propagate': True,

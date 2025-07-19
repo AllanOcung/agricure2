@@ -1,0 +1,339 @@
+{% extends 'dataset_management/base_dataset.html' %} {% load static %} {% block
+header_actions %}
+<div class="btn-group">
+  <a
+    href="{% url 'dataset_management:dataset_detail' dataset.pk %}"
+    class="btn btn-outline-secondary"
+  >
+    <i class="fas fa-arrow-left"></i> Back to Dataset
+  </a>
+  {% if validation_results.is_training_ready %}
+  <a
+    href="{% url 'dataset_management:dataset_cleaning' dataset.pk %}"
+    class="btn btn-outline-info"
+  >
+    <i class="fas fa-broom"></i> Clean Dataset
+  </a>
+  {% endif %}
+</div>
+{% endblock %} {% block main_content %}
+<div class="row">
+  <!-- Validation Summary -->
+  <div class="col-md-12">
+    <div class="card mb-4">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+      >
+        <h5>
+          <i class="fas fa-check-circle"></i> Dataset Validation: {{
+          dataset.name }}
+        </h5>
+        {% if validation_results.is_training_ready %}
+        <span class="badge bg-success fs-6">
+          <i class="fas fa-check"></i> Training Ready
+        </span>
+        {% else %}
+        <span class="badge bg-warning fs-6">
+          <i class="fas fa-exclamation-triangle"></i> Issues Found
+        </span>
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-md-3">
+            <div class="stats-item">
+              <div class="stats-number text-primary">
+                {{ validation_results.total_images }}
+              </div>
+              <div class="stats-label">Total Images</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stats-item">
+              <div class="stats-number text-success">
+                {{ validation_results.class_distribution|length }}
+              </div>
+              <div class="stats-label">Classes</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stats-item">
+              <div class="stats-number text-danger">
+                {{ validation_results.corrupted_images|length }}
+              </div>
+              <div class="stats-label">Corrupted Images</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="stats-item">
+              <div class="stats-number text-warning">
+                {{ validation_results.small_images|length }}
+              </div>
+              <div class="stats-label">Small Images (&lt;224px)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  {% if validation_results.recommendations %}
+  <div class="col-md-12">
+    <div class="card mb-4">
+      <div class="card-header">
+        <h6><i class="fas fa-lightbulb"></i> Recommendations</h6>
+      </div>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+          {% for recommendation in validation_results.recommendations %}
+          <li class="list-group-item d-flex align-items-center">
+            <i class="fas fa-arrow-right text-warning me-2"></i>
+            {{ recommendation }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Class Distribution -->
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h6><i class="fas fa-chart-pie"></i> Class Distribution</h6>
+      </div>
+      <div class="card-body">
+        {% if validation_results.class_distribution %}
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Class Name</th>
+                <th>Image Count</th>
+                <th>Percentage</th>
+                <th>Balance</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for class_name, class_data in
+              validation_results.class_distribution_with_percentages.items %}
+              <tr>
+                <td><strong>{{ class_name }}</strong></td>
+                <td>{{ class_data.count }}</td>
+                <td>{{ class_data.percentage }}%</td>
+                <td>
+                  {% if class_data.percentage < 10 %}
+                  <span class="badge bg-danger">Low</span>
+                  {% elif class_data.percentage > 50 %}
+                  <span class="badge bg-warning">High</span>
+                  {% else %}
+                  <span class="badge bg-success">Good</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle"></i>
+          No classes found in dataset.
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Issues -->
+  <div class="col-md-6">
+    {% if validation_results.corrupted_images %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6>
+          <i class="fas fa-exclamation-circle text-danger"></i> Corrupted Images
+          ({{ validation_results.corrupted_images|length }})
+        </h6>
+      </div>
+      <div class="card-body">
+        <div
+          class="corrupted-images-list"
+          style="max-height: 200px; overflow-y: auto"
+        >
+          {% for image in validation_results.corrupted_images %}
+          <div
+            class="d-flex justify-content-between align-items-center border-bottom py-2"
+          >
+            <div>
+              <strong>{{ image.filename }}</strong><br />
+              <small class="text-muted">{{ image.reason }}</small>
+            </div>
+            <span class="badge bg-danger">Error</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    {% endif %} {% if validation_results.small_images %}
+    <div class="card mb-3">
+      <div class="card-header">
+        <h6>
+          <i class="fas fa-compress text-warning"></i> Small Images ({{
+          validation_results.small_images|length }})
+        </h6>
+      </div>
+      <div class="card-body">
+        <div
+          class="small-images-list"
+          style="max-height: 200px; overflow-y: auto"
+        >
+          {% for image in validation_results.small_images|slice:":10" %}
+          <div
+            class="d-flex justify-content-between align-items-center border-bottom py-2"
+          >
+            <div>
+              <strong>{{ image.filename }}</strong><br />
+              <small class="text-muted"
+                >{{ image.class }} - {{ image.size }}</small
+              >
+            </div>
+            <span class="badge bg-warning">Small</span>
+          </div>
+          {% endfor %} {% if validation_results.small_images|length > 10 %}
+          <div class="text-center mt-2">
+            <small class="text-muted"
+              >... and {{ validation_results.small_images|length|add:"-10" }}
+              more</small
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %} {% if validation_results.large_images %}
+    <div class="card">
+      <div class="card-header">
+        <h6>
+          <i class="fas fa-expand text-info"></i> Large Images ({{
+          validation_results.large_images|length }})
+        </h6>
+      </div>
+      <div class="card-body">
+        <div
+          class="large-images-list"
+          style="max-height: 200px; overflow-y: auto"
+        >
+          {% for image in validation_results.large_images|slice:":10" %}
+          <div
+            class="d-flex justify-content-between align-items-center border-bottom py-2"
+          >
+            <div>
+              <strong>{{ image.filename }}</strong><br />
+              <small class="text-muted"
+                >{{ image.class }} - {{ image.size }}</small
+              >
+            </div>
+            <span class="badge bg-info">Large</span>
+          </div>
+          {% endfor %} {% if validation_results.large_images|length > 10 %}
+          <div class="text-center mt-2">
+            <small class="text-muted"
+              >... and {{ validation_results.large_images|length|add:"-10" }}
+              more</small
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %} {% if not validation_results.corrupted_images and not
+    validation_results.small_images and not validation_results.large_images %}
+    <div class="card">
+      <div class="card-body text-center">
+        <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
+        <h5 class="text-success">No Issues Found!</h5>
+        <p class="text-muted">All images passed validation checks.</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Next Steps -->
+<div class="row mt-4">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h6><i class="fas fa-tasks"></i> Next Steps</h6>
+      </div>
+      <div class="card-body">
+        {% if validation_results.is_training_ready %}
+        <div class="alert alert-success">
+          <h6>
+            <i class="fas fa-check-circle"></i> Dataset is Training Ready!
+          </h6>
+          <p class="mb-2">
+            Your dataset has passed all validation checks and is ready for
+            training.
+          </p>
+          <div class="btn-group">
+            <a
+              href="{% url 'dataset_management:dataset_cleaning' dataset.pk %}"
+              class="btn btn-success"
+            >
+              <i class="fas fa-broom"></i> Clean & Organize
+            </a>
+            <a
+              href="{% url 'dataset_management:dataset_detail' dataset.pk %}"
+              class="btn btn-outline-info"
+            >
+              <i class="fas fa-robot"></i> View Training Info
+            </a>
+          </div>
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+          <h6>
+            <i class="fas fa-exclamation-triangle"></i> Issues Need Attention
+          </h6>
+          <p class="mb-2">
+            Please address the issues above before using this dataset for
+            training.
+          </p>
+          <a
+            href="{% url 'dataset_management:dataset_cleaning' dataset.pk %}"
+            class="btn btn-warning"
+          >
+            <i class="fas fa-broom"></i> Clean Dataset
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_css %} {{ block.super }}
+<style>
+  .stats-item {
+    padding: 1rem;
+  }
+  .stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+  }
+  .stats-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+  }
+  .corrupted-images-list,
+  .small-images-list,
+  .large-images-list {
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+  }
+</style>
+{% endblock %}

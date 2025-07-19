@@ -19,7 +19,7 @@ def login_redirect_view(request):
     
     user_role = get_user_role(request.user)
     if user_role == 'admin':
-        return redirect('dashboard:admin:dashboard')
+        return redirect('admin_dashboard:home')
     else:
         return redirect('dashboard:home')
 
@@ -38,7 +38,7 @@ class CustomLoginView(LoginView):
         # Redirect based on user role
         user_role = get_user_role(self.request.user)
         if user_role == 'admin':
-            return reverse_lazy('dashboard:admin:dashboard')
+            return reverse_lazy('admin_dashboard:home')
         else:
             return reverse_lazy('dashboard:home')
 
@@ -93,7 +93,7 @@ def login_view(request):
                 # Redirect based on user role
                 user_role = get_user_role(user)
                 if user_role == 'admin':
-                    return redirect('dashboard:admin:dashboard')
+                    return redirect('admin_dashboard:home')
                 else:
                     return redirect('dashboard:home')
     else:

@@ -1,0 +1,201 @@
+{% extends 'admin_dashboard/base.html' %} 
+{% block title %}Create Model{% endblock %} {% block page_actions %}
+<a href="{% url 'admin_dashboard:models' %}" class="btn btn-secondary">
+  <i class="fas fa-arrow-left"></i> Back to Models
+</a>
+{% endblock %} {% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-plus"></i> Create New Model</h5>
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+
+          <div class="mb-3">
+            <label for="{{ form.name.id_for_label }}" class="form-label"
+              >Model Name</label
+            >
+            {{ form.name }} {% if form.name.help_text %}
+            <div class="form-text">{{ form.name.help_text }}</div>
+            {% endif %} {% if form.name.errors %}
+            <div class="text-danger">
+              {% for error in form.name.errors %}
+              <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.description.id_for_label }}" class="form-label"
+              >Description</label
+            >
+            {{ form.description }} {% if form.description.help_text %}
+            <div class="form-text">{{ form.description.help_text }}</div>
+            {% endif %} {% if form.description.errors %}
+            <div class="text-danger">
+              {% for error in form.description.errors %}
+              <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.dataset.id_for_label }}" class="form-label"
+              >Training Dataset</label
+            >
+            {{ form.dataset }} {% if form.dataset.help_text %}
+            <div class="form-text">{{ form.dataset.help_text }}</div>
+            {% endif %} {% if form.dataset.errors %}
+            <div class="text-danger">
+              {% for error in form.dataset.errors %}
+              <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.architecture.id_for_label }}" class="form-label"
+              >Model Architecture</label
+            >
+            {{ form.architecture }} {% if form.architecture.help_text %}
+            <div class="form-text">{{ form.architecture.help_text }}</div>
+            {% endif %} {% if form.architecture.errors %}
+            <div class="text-danger">
+              {% for error in form.architecture.errors %}
+              <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="mb-3">
+            <label for="{{ form.version.id_for_label }}" class="form-label"
+              >Version</label
+            >
+            {{ form.version }} {% if form.version.help_text %}
+            <div class="form-text">{{ form.version.help_text }}</div>
+            {% endif %} {% if form.version.errors %}
+            <div class="text-danger">
+              {% for error in form.version.errors %}
+              <small>{{ error }}</small>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a
+              href="{% url 'admin_dashboard:models' %}"
+              class="btn btn-secondary"
+              >Cancel</a
+            >
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-save"></i> Create Model
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Model Creation Tips -->
+<div class="row mt-4">
+  <div class="col-md-12">
+    <div class="card border-info">
+      <div class="card-header bg-info text-white">
+        <h6 class="mb-0">
+          <i class="fas fa-lightbulb"></i> Model Creation Tips
+        </h6>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <h6>Naming Convention</h6>
+            <ul class="list-unstyled">
+              <li>
+                <i class="fas fa-check text-success"></i> Use descriptive names
+                (e.g., "Tomato Disease Classifier")
+              </li>
+              <li>
+                <i class="fas fa-check text-success"></i> Include crop type in
+                the name
+              </li>
+              <li>
+                <i class="fas fa-check text-success"></i> Use version numbers
+                for iterations
+              </li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <h6>Architecture Selection</h6>
+            <ul class="list-unstyled">
+              <li>
+                <i class="fas fa-info-circle text-info"></i>
+                <strong>CNN:</strong> Good for image classification
+              </li>
+              <li>
+                <i class="fas fa-info-circle text-info"></i>
+                <strong>ResNet:</strong> Better for complex patterns
+              </li>
+              <li>
+                <i class="fas fa-info-circle text-info"></i>
+                <strong>VGG:</strong> Simple but effective
+              </li>
+              <li>
+                <i class="fas fa-info-circle text-info"></i>
+                <strong>EfficientNet:</strong> Optimized performance
+              </li>
+            </ul>
+          </div>
+        </div>
+        <div class="row mt-3">
+          <div class="col-md-12">
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <strong>Important:</strong> Make sure your selected dataset has
+              sufficient images for training. We recommend at least 100 images
+              per class for good results.
+            </div>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle"></i>
+              <strong>Next Steps:</strong> After creating the model, you'll be
+              able to configure training parameters (learning rate, batch size,
+              epochs) before starting the training process.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script>
+  // Add Bootstrap form styling
+  document.addEventListener("DOMContentLoaded", function () {
+    // Add form-control class to form fields
+    const formFields = document.querySelectorAll(
+      'input[type="text"], input[type="number"], select, textarea'
+    );
+    formFields.forEach((field) => {
+      field.classList.add("form-control");
+    });
+
+    // Add form-check styling to checkboxes
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.classList.add("form-check-input");
+      const label = checkbox.closest("label") || checkbox.nextElementSibling;
+      if (label) {
+        label.classList.add("form-check-label");
+      }
+    });
+  });
+</script>
+{% endblock %}

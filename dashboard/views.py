@@ -1,77 +1,21 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import get_user_model
-from django.http import JsonResponse
 from django.contrib import messages
-from django.core.files.storage import default_storage
-from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.utils import timezone
 from PIL import Image
 import os
-import json
-from .models import CropImage, DiagnosisResult, Disease
-
-
-User = get_user_model()
 
 @login_required
 def dashboard_home(request):
     """
     Main dashboard view for authenticated users
     """
-    # Get recent diagnoses for the user
-    recent_diagnoses = DiagnosisResult.objects.filter(
-        crop_image__user=request.user,
-        status='completed'
-    ).order_by('-created_at')[:5]
-    
-    # Get diagnosis statistics
-    total_diagnoses = DiagnosisResult.objects.filter(
-        crop_image__user=request.user,
-        status='completed'
-    ).count()
-    
-    diseased_count = DiagnosisResult.objects.filter(
-        crop_image__user=request.user,
-        status='completed',
-        is_diseased=True
-    ).count()
-    
     context = {
         'user': request.user,
         'page_title': 'Dashboard',
-        'recent_diagnoses': recent_diagnoses,
-        'total_diagnoses': total_diagnoses,
-        'diseased_count': diseased_count,
-        'healthy_count': total_diagnoses - diseased_count,
     }
     return render(request, 'dashboard/dashboard.html', context)
-
-@login_required
-def profile_view(request):
-    """
-    User profile management view
-    """
-    context = {
-        'user': request.user,
-        'page_title': 'Profile',
-    }
-    return render(request, 'dashboard/profile.html', context)
-
-@login_required
-def diagnosis_history(request):
-    """
-    View for showing user's diagnosis history
-    """
-    diagnoses = DiagnosisResult.objects.filter(
-        crop_image__user=request.user
-    ).order_by('-created_at')
-    
-    context = {
-        'user': request.user,
-        'page_title': 'Diagnosis History',
-        'diagnoses': diagnoses,
-    }
-    return render(request, 'dashboard/diagnosis_history.html', context)
 
 @login_required
 def upload_image(request):
@@ -113,71 +57,74 @@ def handle_image_upload(request):
         except Exception:
             return JsonResponse({'error': 'Invalid image file.'}, status=400)
         
-        # Create CropImage instance
-        crop_image = CropImage.objects.create(
-            user=request.user,
-            image=uploaded_file,
-            crop_type=request.POST.get('crop_type', ''),
-            location=request.POST.get('location', ''),
-            notes=request.POST.get('notes', ''),
-            original_filename=uploaded_file.name,
-            file_size=uploaded_file.size,
-            image_width=width,
-            image_height=height
-        )
+        # Get production models
+        production_models = MLModel.objects.filter(status='production')
+        if not production_models.exists():
+            return JsonResponse({'error': 'No production models available for diagnosis.'}, status=400)
         
-        # Trigger AI diagnosis
+        # Use the first production model (you can implement selection logic later)
+        model = production_models.first()
+        
+        # Make prediction using the production model
         try:
-            diagnosis = ai_service.diagnose_crop_image(crop_image)
+            prediction_result = make_prediction(model.id, uploaded_file, request.user, uploaded_file.name)
             
             # Prepare response data
             response_data = {
                 'success': True,
-                'diagnosis_id': diagnosis.id,
-                'crop_image_id': crop_image.id,
-                'status': diagnosis.status,
+                'prediction_id': prediction_result.id,
+                'prediction': prediction_result.prediction,
+                'confidence': prediction_result.confidence_score,
+                'disease_name': prediction_result.disease_name,
+                'disease_description': prediction_result.disease_description,
+                'severity': prediction_result.severity,
+                'recommendations': prediction_result.recommendations,
+                'processing_time': prediction_result.processing_time,
+                'model_used': model.name,
+                'image_url': prediction_result.image.url if prediction_result.image else None,
             }
-            
-            if diagnosis.status == 'completed':
-                response_data.update({
-                    'is_diseased': diagnosis.is_diseased,
-                    'detected_disease': diagnosis.detected_disease.name if diagnosis.detected_disease else 'Healthy',
-                    'confidence_score': diagnosis.confidence_score,
-                    'severity': diagnosis.severity,
-                    'recommendations': diagnosis.recommendations,
-                    'processing_time': diagnosis.processing_time,
-                })
-            elif diagnosis.status == 'failed':
-                response_data['error'] = diagnosis.error_message
             
             return JsonResponse(response_data)
             
         except Exception as e:
-            # If AI diagnosis fails, still save the image
             return JsonResponse({
-                'success': True,
-                'crop_image_id': crop_image.id,
-                'status': 'failed',
-                'error': f'AI diagnosis failed: {str(e)}'
-            })
+                'success': False,
+                'error': f'Prediction failed: {str(e)}'
+            }, status=500)
         
     except Exception as e:
         return JsonResponse({'error': f'Upload failed: {str(e)}'}, status=500)
 
 @login_required
-def diagnosis_detail(request, diagnosis_id):
+def my_diagnoses(request):
     """
-    View for displaying detailed diagnosis results
+    View for showing user's diagnosis history
     """
-    diagnosis = get_object_or_404(
-        DiagnosisResult, 
-        id=diagnosis_id, 
-        crop_image__user=request.user
-    )
+    diagnoses = PredictionResult.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
     
     context = {
         'user': request.user,
-        'page_title': 'Diagnosis Details',
-        'diagnosis': diagnosis,
+        'page_title': 'My Diagnoses',
+        'diagnoses': diagnoses,
     }
-    return render(request, 'dashboard/diagnosis_detail.html', context)
+    return render(request, 'dashboard/my_diagnoses.html', context)
+
+@login_required
+def profile(request):
+    """User profile view"""
+    from accounts.models import UserProfile
+    
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+    except UserProfile.DoesNotExist:
+        user_profile = None
+    
+    context = {
+        'user_profile': user_profile,
+        'user': request.user,
+        'page_title': 'Profile',
+    }
+    
+    return render(request, 'dashboard/profile.html', context)

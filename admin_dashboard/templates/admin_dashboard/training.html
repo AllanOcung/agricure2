@@ -1,0 +1,306 @@
+{% extends 'admin_dashboard/base.html' %} 
+{% block title %}Training Dashboard{% endblock %} 
+{% block page_actions %}
+<a href="{% url 'admin_dashboard:models' %}" class="btn btn-success">
+  <i class="fas fa-plus"></i> Create New Model
+</a>
+<button type="button" class="btn btn-secondary" onclick="location.reload()">
+  <i class="fas fa-sync"></i> Refresh
+</button>
+{% endblock %} {% block content %}
+<!-- Training Statistics -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-chart-bar"></i> Training Statistics
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="row text-center">
+          <div class="col-md-2 col-sm-6">
+            <h3 class="text-primary">{{ training_stats.total_models }}</h3>
+            <small class="text-muted">Total Models</small>
+          </div>
+          <div class="col-md-2 col-sm-6">
+            <h3 class="text-success">{{ training_stats.trained_models }}</h3>
+            <small class="text-muted">Trained</small>
+          </div>
+          <div class="col-md-2 col-sm-6">
+            <h3 class="text-warning">{{ training_stats.training_models }}</h3>
+            <small class="text-muted">Training</small>
+          </div>
+          <div class="col-md-2 col-sm-6">
+            <h3 class="text-danger">{{ training_stats.failed_models }}</h3>
+            <small class="text-muted">Failed</small>
+          </div>
+          <div class="col-md-2 col-sm-6">
+            <h3 class="text-secondary">{{ training_stats.draft_models }}</h3>
+            <small class="text-muted">Draft</small>
+          </div>
+          <div class="col-md-2 col-sm-6">
+            <h3 class="text-info">{{ active_jobs|length }}</h3>
+            <small class="text-muted">Active Jobs</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Active Training Jobs -->
+{% if active_jobs %}
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card border-warning">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0">
+          <i class="fas fa-spinner fa-spin"></i> Active Training Jobs
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Architecture</th>
+                <th>Progress</th>
+                <th>Current Epoch</th>
+                <th>Started</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for job in active_jobs %}
+              <tr>
+                <td>
+                  {% if job.model_id %}
+                  <a
+                    href="{% url 'admin_dashboard:model_detail' job.model_id %}"
+                  >
+                    {{ job.model_name }}
+                  </a>
+                  {% else %} {{ job.model_name|default:"Unknown Model" }} {% endif %}
+                </td>
+                <td>{{ job.architecture }}</td>
+                <td>
+                  <div class="progress" style="height: 20px">
+                    <div
+                      class="progress-bar bg-warning"
+                      style="width: {{ job.progress }}%"
+                    >
+                      {{ job.progress }}%
+                    </div>
+                  </div>
+                </td>
+                <td>{{ job.current_epoch }}/{{ job.total_epochs }}</td>
+                <td>{{ job.started_at|timesince }} ago</td>
+                <td>
+                  {% if job.model_id %}
+                  <a
+                    href="{% url 'admin_dashboard:stop_training' job.model_id %}"
+                    class="btn btn-sm btn-danger"
+                    onclick="return confirm('Are you sure you want to stop this training?')"
+                  >
+                    <i class="fas fa-stop"></i> Stop
+                  </a>
+                  {% else %}
+                  <span class="text-muted">No actions available</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- All Models -->
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-brain"></i> All Models</h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Version</th>
+                <th>Architecture</th>
+                <th>Dataset</th>
+                <th>Status</th>
+                <th>Accuracy</th>
+                <th>Last Training</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for model in all_models %}
+              <tr>
+                <td>
+                  <a href="{% url 'admin_dashboard:model_detail' model.id %}">
+                    {{ model.name }}
+                  </a>
+                </td>
+                <td>{{ model.version }}</td>
+                <td>{{ model.architecture }}</td>
+                <td>
+                  <a
+                    href="{% url 'admin_dashboard:dataset_detail' model.dataset.id %}"
+                  >
+                    {{ model.dataset.name }}
+                  </a>
+                </td>
+                <td>
+                  <span
+                    class="badge bg-{% if model.status == 'trained' %}success{% elif model.status == 'training' %}warning{% elif model.status == 'failed' %}danger{% else %}secondary{% endif %}"
+                  >
+                    {{ model.get_status_display }}
+                  </span>
+                </td>
+                <td>
+                  {% if model.validation_accuracy %} 
+                  {{ model.validation_accuracy|floatformat:2 }}% {% else %} - {% endif %}
+                </td>
+                <td>
+                  {% if model.training_started_at %} 
+                  {{ model.training_started_at|timesince }} ago {% else %} Never {% endif %}
+                </td>
+                <td>
+                  {% if model.status == 'draft' or model.status == 'failed' %}
+                  <a
+                    href="{% url 'admin_dashboard:configure_training' model.id %}"
+                    class="btn btn-sm btn-primary"
+                  >
+                    <i class="fas fa-cogs"></i> Configure
+                  </a>
+                  <a
+                    href="{% url 'admin_dashboard:start_training' model.id %}"
+                    class="btn btn-sm btn-success"
+                    onclick="return confirm('Start training for {{ model.name }}?')"
+                  >
+                    <i class="fas fa-play"></i> Start
+                  </a>
+                  {% elif model.status == 'training' %}
+                  <a
+                    href="{% url 'admin_dashboard:stop_training' model.id %}"
+                    class="btn btn-sm btn-danger"
+                    onclick="return confirm('Stop training for {{ model.name }}?')"
+                  >
+                    <i class="fas fa-stop"></i> Stop
+                  </a>
+                  {% elif model.status == 'trained' %}
+                  <a
+                    href="{% url 'admin_dashboard:model_detail' model.id %}"
+                    class="btn btn-sm btn-info"
+                  >
+                    <i class="fas fa-eye"></i> View
+                  </a>
+                  <a
+                    href="{% url 'admin_dashboard:deploy_model' model.id %}"
+                    class="btn btn-sm btn-success"
+                  >
+                    <i class="fas fa-rocket"></i> Deploy
+                  </a>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="8" class="text-center text-muted">
+                  <i class="fas fa-brain fa-3x mb-3"></i>
+                  <p>No models created yet.</p>
+                  <a
+                    href="{% url 'admin_dashboard:create_model' %}"
+                    class="btn btn-primary"
+                  >
+                    <i class="fas fa-plus"></i> Create Your First Model
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent Training Logs -->
+{% if recent_logs %}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">
+          <i class="fas fa-history"></i> Recent Training Activity
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Epoch</th>
+                <th>Training Loss</th>
+                <th>Training Accuracy</th>
+                <th>Validation Loss</th>
+                <th>Validation Accuracy</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for log in recent_logs %}
+              <tr>
+                <td>
+                  <a
+                    href="{% url 'admin_dashboard:model_detail' log.model.id %}"
+                  >
+                    {{ log.model.name }}
+                  </a>
+                </td>
+                <td>{{ log.epoch }}</td>
+                <td>{{ log.training_loss|floatformat:4 }}</td>
+                <td>{{ log.training_accuracy|floatformat:2 }}%</td>
+                <td>{{ log.validation_loss|floatformat:4 }}</td>
+                <td>{{ log.validation_accuracy|floatformat:2 }}%</td>
+                <td>{{ log.created_at|timesince }} ago</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script>
+  // Auto-refresh page every 30 seconds if there are active jobs
+  {% if active_jobs %}
+  setTimeout(function() {
+      location.reload();
+  }, 30000);
+  {% endif %}
+
+  // Real-time progress updates (placeholder for WebSocket implementation)
+  function updateTrainingProgress() {
+      // This would be implemented with WebSockets for real-time updates
+      console.log('Checking for training progress updates...');
+  }
+
+  // Check for updates every 10 seconds
+  setInterval(updateTrainingProgress, 10000);
+</script>
+{% endblock %}

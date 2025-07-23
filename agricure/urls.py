@@ -24,8 +24,6 @@ urlpatterns = [
     path('', include('core.urls')),
     path('accounts/', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
-    path('admin-dashboard/', include('admin_dashboard.urls')),
-    path('datasets/', include('dataset_management.urls')),
 ]
 
 # Serve media files during development
